@@ -1,0 +1,2 @@
+../Application/User/Core/Environment.c:17:6:environmentParametersInit	1
+../Application/User/Core/Environment.c:34:6:getEnvironmentParameters	1

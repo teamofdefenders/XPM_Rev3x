@@ -1,0 +1,5 @@
+../Application/User/Core/Bootloader.c:29:6:Boot_Change	1
+../Application/User/Core/Bootloader.c:253:10:GetPage	3
+../Application/User/Core/Bootloader.c:87:6:Reflash	15
+../Application/User/Core/Bootloader.c:269:10:GetBank	1
+../Application/User/Core/Bootloader.c:284:11:getSwapBank	1

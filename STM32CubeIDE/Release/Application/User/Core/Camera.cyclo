@@ -1,0 +1,8 @@
+../Application/User/Core/Camera.c:123:6:printCameraStatus	3
+../Application/User/Core/Camera.c:49:6:cameraInitialize	6
+../Application/User/Core/Camera.c:134:6:takeCameraImage	6
+../Application/User/Core/Camera.c:186:11:CAM_Get_State	1
+../Application/User/Core/Camera.c:191:11:CAM_Get_Ready	1
+../Application/User/Core/Camera.c:197:6:getCameraPower	1
+../Application/User/Core/Camera.c:202:6:setCameraPower	2
+../Application/User/Core/Camera.c:211:6:getCameraConfigStatus	1

@@ -1,0 +1,313 @@
+XPM Firmware LowP Version release Notes
+
+
+V0.0.4
+	OTA Testing
+	Swap bank testing - Bank 1
+	Added enable modem if isOTA waiting
+	Fixed error return in populateFirmwareArray
+
+V0.0.5
+Added proper gps timeout and DayNight functionality
+
+V0.0.6
+Added 3 loop retry for cell_init
+
+V0.0.7
+changed loop timer for downlinks
+
+V0.0.8_
+Added hardcoded files = 1
+
+V0.0.9
+Added error if missing fw pages is greater than 5
+
+
+_V0.1.0
+fixed missing pages (image)
+
+V0.0.10
+added printf messages to xps
+
+XPM_LowP_V0.0.12
+Added infinite missing pages loop fix
+
+V0.0.13
+Added hardfault fixes, testing daynightconfig save
+
+V0.0.14
+changed fw loop delay back to 3 seconds
+
+XPM_LowP_V0.0.15
+
+Added robustness to OTA, fixed hardfault
+
+XPM_LowP_V0.0.16
+12 hr HB
+
+XPM_LowP_V0.0.17
+	Official first release from HeartbeatStop3Test branch
+	OTA day night switching fixes and populateFirmwareArray fixes
+	In devices given to product testing
+
+
+XPM_LowP_V0.0.18
+	Add device Muting period [XPMH-256]
+	Fix the HeartBeat calls ln 885 ish [XPMH-225]
+	add version number structure and printing
+	Change function name of verifyFWAvailable
+	[XPMH-224]
+	[XPMH-219]
+
+
+V0.2.3 (01/09/2025)
+	Report GPS Location                                       [XPMH-259]
+	Fix all the “direct” access to the Mem_PTr structure      [XPMH-223]
+	Complete CRC check function                               [XPMH-222]
+	Bootloader cleanup                                        [XPMH-221]  
+	Modify XPS to include new Downlink Parameters             [XPMH-281]   
+	Downlink configuration response design (errors)           [XPMH-248]  
+	Heartbeat Configuration Downlink Decode                   [XPMH-91]  
+	GPS Configuration Downlink Decode                         [XPMH-238]  
+	Set Mutable Parameters to Downlink Default Parameters     [XPMH-269] 
+	                                                          														  
+	Drivers files
+	    none
+	Core files
+		main.c - Added gps time failure handeling
+		       - Updated firmware version
+			   - Implemented device status upplink
+		DayNight.h - Updated default hours
+		Functions.h - Reorganized and added necessary gps functions
+		Skywire.h - Moved gps functions to GPS.h
+	App include files 
+		GPS.h	- Created file
+		
+	App Source files 
+		DayNight.c  - Added dayNightConfigStr function
+					- Modified decodeDayNightConfigs function for new downlink 
+	    Functions.c	- Added decoding functions into universal downlink
+					- Moved day night decode to DayNight.c
+					- Moved gps functions to GPS.c
+					- Added gps initialization calls in memory_Init
+					- Implemented config acknowledgment device status uplink
+					- Implemented genaric calculateNextTime and checkNextTime functions
+					- Implemented gps aquisition timer for 20 hours using new method
+					- Updated mute and heart beat timers to use new method
+					- memory_Init function changed to check critical default values and set them if not set
+		GPS.c		- Created file
+		Skywire.c   - Moved gps functions into GPS.c
+		            - Added diagnostic uplink message
+					- Added getServerTime request uplink function
+					- Added device status uplink test function
+		XPS.c       - Added all necessary downlink parameters
+
+
+V0.3.0 (01/27/2025) - Internal Release
+Heartbeat Configuration Downlink Decode	[XPMH-91]
+Bootloader cleanup	[XPMH-221]
+Complete CRC check function 	XPMH-222
+Fix all the “direct” access to the Mem_PTr structure	[XPMH-223]
+GPS Configuration Downlink Decode	[XPMH-238]
+RTC Stop3 Wakeup - for Heartbeat	[XPMH-246]
+Downlink configuration response design (errors)	[XPMH-248]
+Report GPS Location	[XPMH-259]
+Set Mutable Parameters to Downlink Default Parameters	[XPMH-269]
+Modify XPS to include new Downlink Parameters	[XPMH-281]
+add temporary GPS acquisition timer	[XPMH-289]
+	
+PIR Configuration Downlink Decode	[XPMH-93]
+Make GPS.c file	[XPMH-230] 
+Cell connection issues	[XPMH-242] 
+GPS time failure handling	[XPMH-263]
+Add checkFunctionActive function	[XPMH-302]
+XPS data storage for PIR parameters	[XPMH-303]
+Modify Main loop to replace isNight function with checkActiveFunction	[XPMH-304]
+Implement the wakeup from stop 3 drift fix, and resolve the "12457 second" bug	XPMH-308
+	                                                          														  
+	Drivers files
+	    stm32u5xx_hal_cortex.c - Added  WRITE_REG(RTC->SCR, RTC_SCR_CWUTF);
+		stm32u5xx_hal_rtc_ex.c - Added a couple of clear flags
+	Core files
+		main.c - Added gps time failure handling
+		       - Updated firmware version
+			   - Implemented device status uplink
+		Functions.h - Added time functions
+		       - Added MQTT packet structure clearing functions
+			   - Added PIR downlink packets functions
+			   - Added Get mode hardware module definitions
+		Skywire.h - Moved gps functions to GPS.h
+		       - Added module statis messages
+	    stm32u5xx_hal_conf.h - Enabled USE_HAL_RTC_REGISTER_CALLBACKS
+
+	App include files 
+	    none
+		
+	App Source files 
+		Buzzer.c    - In the Init function, removed the low power timer initialization
+		DayNight.c  - Fixed Day/night RTC functions
+	    Functions.c	- Added PIR decoding functions into universal downlink
+					- Fixed RTC data and time fetching failures
+					- Added MQTT structure clearing functions
+					- Cleared MQTT data where appropriate
+					- Updated State machine
+		GPS.c		- Minor changes
+		GPS.h		- Added some defines
+		Interrupt.c - Added PIR functions
+		            - Added HAL_RTCEx_WakeUpTimerEventCallback function
+		PIR.c       - Added downlink parameters and functions
+		Skywire.c   - Connection robustness fixes
+		XPS.c       - Added get mode function
+
+
+V0.3.1 (01/27/2025) - Internal Release
+Alpha 3 Release Testing cleanup	[XPMH-311]
+	                                                          														  
+	Drivers files
+	    none
+	Core files
+		main.c - fixed GPS time sync
+		       - Updated firmware version
+		Functions.h - Added heartbeat default parameters
+		PIR.h      - Added PIR default parameters
+	App include files 
+		none
+		
+	App Source files 
+	    Functions.c	- Fixed Heartbeat calculations using parameters instead of hard coded value
+					- Modified state machine to use PIR mode for day night switching
+		PIR.c       - Set mode to default
+		Skywire.c   - Fixed hard codes in device_status message except for firmware version
+		
+		
+V0.3.2 (02/05/2025) - External Release
+                                                          														  
+	Drivers files
+	    none
+	Core files
+		main.c - Updated firmware version
+		Functions.h - Added motion parameter decode function prototypes
+	App include files 
+		none
+	App Source files 
+		DayNight.c  - Removed Printf statements for deprecated DayNight mode parameter
+	    Functions.c	- Fixed Cell modem multiple unnecessary boot ups
+					- Modified state machine
+					- Fixed heartbeat and PIR initializations
+					- Fixed calculate next Heartbeat time
+		GPS.c		- Changed the get GPS parameters function name
+		PIR.c       - Fixed the decoding of PIR and motion downlinks
+		Skywire.c   - Optimized Cell initialization
+		XPS.c       - Added some Printf statements for debugging
+		
+		
+V0.3.3 (02/15/2025) - Internal Release
+                                                         														  
+	Drivers files
+	    none
+	Core files
+		main.c - Updated firmware version
+		       - Added message string to sendDiagnostic calls
+			   - Fixed Indentations
+		Functions.h - Changed sendDiagnostic function prototype
+					- Organized file
+					- Changed reference pointers to value whenever possible
+		
+	App include files 
+		none
+	App Source files 
+		DayNight.c  - Fixed parameter passing by value
+					- Gave some variables more descriptive names
+	    Functions.c	- Fixed parameter passing by value
+					- Gave some variables more descriptive names
+					- Added some Printf statements for debugging 
+		GPS.c		- Fixed parameter passing by value
+					- Gave some variables more descriptive names
+		Interrupt.c - Fixed Indentations
+		PIR.c       - Added getPirMutePeriod function
+					- Fixed parameter passing by value
+					- Gave some variables more descriptive names
+		Skywire.c   - Fixed parameter passing by value
+					- Gave some variables more descriptive names
+					- Modified sendDiagnostic to pass the message parameter to the diagnostic type
+		XPS.c       - Added getHbInterval function
+					- Gave some variables more descriptive names
+
+		
+V0.3.4 (02/20/2025) - External Release
+    Fix DayNight Issues                                                      														  
+	Drivers files
+	    none
+	Core files
+		main.c - Updated firmware version
+		       - Removed some code test sections
+		DayNight.h  - Moved some function prototypes to Functions.h
+		Functions.h - Added some new function prototypes
+	App include files 
+		none
+	App Source files 
+		DayNight.c  - Added isNight2 function which just returns day or night
+					- Gave some variables more descriptive names
+	    Functions.c	- Modified state machine
+					- Created new functions for power down and clear PIR FLags
+					- Added Printf statements for debugging
+		Interrupt.c - Changed isNight to isNight2 in the PIR interrupt handler
+		Skywire.c   - Updated firmware version
+				
+V0.4.2 (04/02/2025)
+	Accelerometer Configuration Downlink Decode				  [XPMH-100]
+	Fix the hard coded array size definitions                 [XPMH-220] 	
+	True Accelerometer Initialization function      		  [XPMH-232]      
+	XPS memory storage cleanup                                [XPMH-252]
+	Add timestamps to all server communications				  [XPMH-227]
+	GPIO stop 3 wakeup										  [XPMH-264]
+	Implement battery charging messages                       [XPMH-279]
+	Make PIR parameters local to PIR.c file                   [XPMH-284]
+	Investigate unwanted PIR interrupts in mute period        [XPMH-309]
+	Change Server login credentials  						  [XPMH-322]
+	Increase occurrences for storage to external memory		  [XPMH-323]
+	Get rid oflocation try in the first time through loop	  [XPMH-333]
+	Restructure Camera.c file                                 [XPMH-343]
+	Fixed timestamp function			                      [XPMH-353]
+	Accelerometer free fall set defaults                      [XPMH-355]
+	Implement Accelerometer Muting		                      [XPMH-374]
+	Implement XTRA GPS file download and active antenna       [XPMH-377]
+	Fix OTA for 0.4.x release                                 [XPMH-384]
+ 
+	Drivers files
+	    stm32u5xx_it.c - Added accelerometer pin as stop 3 wake up pin
+	Core files
+		main.c - Updated firmware version
+		Accelerometer.h     - Added default parameters for accelerometer configs
+						    - Added function prototypes for new accelerometer driver
+		ArducamCamera.h 	- Removed unnnecessary log definitions
+						    - Refactored CAM_STATUS_REG structure and methods
+		
+		DayNight.h  - Updated default hours
+		Functions.h - Reorganized and added necessary accelerometer functions
+		PIR.h       - Added strucutre for motion filter period
+			        - Added PIR filter parameters and decode configs functions
+		Skywire.h   - Added functionality for active antenna testing'
+				    - Removed accelerometer redirections
+		XPS.h 	    - Added flash parameters for accelerometer parameters
+		
+	App Source files 
+		Accelerometer.c - Implemented functionality for interrupt handling
+						- Implemented accelerometer downlink decode
+		ArducamCamera.c	- Refactored camera driver for ease of use and performance
+		DayNight.c  	- Added dayNightConfigStr function
+						- Modified decodeDayNightConfigs function for new downlink
+		GPS.c 			- Modified file to download external GPS file for more secure connection
+		Interrupt.c 	- Updated stop 3 wake up handling to include accelerometer
+	    Functions.c		- Refined state machine for robustness and performance
+						- Added accelerometer mute functionality
+						- Added accelerometer handling functionality
+						- Fixed heartbeat on first picture bug
+						- Updated mute and heart beat timers
+						- memory_Init function modified to check for key accelerometer and PIR parameters
+		PIR.c           - Implemented accessor functions and inits for PIR parameters
+					    - Added decode handeling for PIR configs
+		Skywire.c 		- Modified status function to pass in full status message
+						- Removed a few of the unnecessary redirections
+		XPS.c 			- Added all necessary downlink parameters
+

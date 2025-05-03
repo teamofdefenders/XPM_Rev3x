@@ -1,0 +1,10 @@
+../Application/User/Core/DayNight.c:19:6:dayNightInit	1
+../Application/User/Core/DayNight.c:30:6:getBusinessHours	1
+../Application/User/Core/DayNight.c:42:6:setBusinessHours	1
+../Application/User/Core/DayNight.c:54:6:setConfigurationTime	1
+../Application/User/Core/DayNight.c:98:6:isNight2	6
+../Application/User/Core/DayNight.c:141:6:isTimeDefault	1
+../Application/User/Core/DayNight.c:71:6:isNight	3
+../Application/User/Core/DayNight.c:168:6:setLastEvent	1
+../Application/User/Core/DayNight.c:180:6:decodeDayNightConfigs	20
+../Application/User/Core/DayNight.c:303:7:dayNightConfigStr	1
