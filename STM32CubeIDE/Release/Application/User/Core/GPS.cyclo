@@ -5,7 +5,7 @@
 ../Application/User/Core/GPS.c:81:6:isGpsTimeSyncEnabled	1
 ../Application/User/Core/GPS.c:87:7:GPSIntToFloat	1
 ../Application/User/Core/GPS.c:103:9:GPSFloatToInt	1
-../Application/User/Core/GPS.c:123:6:decodeGPSConfigs	44
+../Application/User/Core/GPS.c:123:6:decodeGPSConfigs	45
 ../Application/User/Core/GPS.c:410:6:gpsGetData	26
 ../Application/User/Core/GPS.c:596:7:getGpsConfigStr	1
 ../Application/User/Core/GPS.c:619:7:gpsGetLocationBuff	1

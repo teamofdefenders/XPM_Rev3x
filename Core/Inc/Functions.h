@@ -35,7 +35,7 @@
 
 #define OTA_FLASH_SIZE 160000  // OTA flash arbitrary maximum size
 #define MEMORY_MAX 4000	// Change to RECV_MAX_SIZE
-#define PIC_MAX 90000
+#define PIC_MAX 60000
 #define PIC_DATA_LIM 3500   // KCS change to XMIT_MAX_SIZE
 #define MAXPAGES 80
 #define DEVICE_ID_SIZE 15
