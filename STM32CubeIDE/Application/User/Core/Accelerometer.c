@@ -40,8 +40,6 @@ ACCEL_DEVICE_STATE_TYPE accelDevice;
 ACCEL_DATA_TYPE privateAccelData;
 ACCELERATION_PARAM_TYPE privateAccelParameters;
 
-char accErrorStr[CONFIG_ERR_MSG_SIZE] = {0};
-
 // TODO return status in all function returns that are currently "Void"
 
 /******************************************************
