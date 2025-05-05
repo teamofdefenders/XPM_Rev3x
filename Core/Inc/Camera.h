@@ -27,6 +27,15 @@
  Note: Values Gathered from Datasheet
  ******************************************************/
 
+#define DEF_CAM_MODE 0
+#define DEF_CAM_WARMUP 1
+#define DEF_CAM_PIC_PER_MOTION 1
+#define DEF_CAM_PIC_INTERVAL 1
+#define DEF_CAM_SAMPLE_HOUR 13
+#define DEF_CAM_SAMPLE_MIN 0
+#define DEF_CAM_NUM_SAMPLES 2
+#define CAM_MSG_SIZE 500
+#define CAM_CONFIG_VERSION 0
 /******************************************************
  Global Enum
  Note: Values are used for error codes,

@@ -331,13 +331,13 @@ bool decodeDayNightConfigs(uint8_t *mqttMsg)
 
 char* dayNightConfigStr()
 {
-	static char buffer[DOWNLINK_TEST_MSG_SIZE] = " ";
+	static char buffer[500] = " ";
 	bool valid = false;
 
-	int buffSize = snprintf(buffer, DOWNLINK_TEST_MSG_SIZE, "\"day_night\":{\"version\":%u,\"day_start_time\":\"%02u:%02u\",\"night_start_time\":\"%02u:%02u\"}",
+	int buffSize = snprintf(buffer, 500, "\"day_night\":{\"version\":%u,\"day_start_time\":\"%02u:%02u\",\"night_start_time\":\"%02u:%02u\"}",
 			privateBusiness.DayNightSwitchEnabled,privateBusiness.dayTime.hours, privateBusiness.dayTime.minutes, privateBusiness.nightTime.hours, privateBusiness.nightTime.minutes);
 
-	if(buffSize > 0 && buffSize < DOWNLINK_TEST_MSG_SIZE)
+	if(buffSize > 0 && buffSize < 500)
 	{
 		valid = true;
 	}

@@ -44,7 +44,7 @@
 #define NIGHT_NO_MOTION_DEF 60
 #define NIGHT_NEAR_MOTION_DEF 50
 
-#define PIR_MSG_SIZE 2000
+#define PIR_MSG_SIZE 500
 
 /* External variables --------------------------------------------------------*/
 

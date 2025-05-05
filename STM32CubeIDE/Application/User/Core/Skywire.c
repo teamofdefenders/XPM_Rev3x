@@ -4250,7 +4250,7 @@ void sendDeviceConfig( MEM_PTR *Data_Ptr, STATUS_UPLINK_TYPE uplnkType )
 		buffSize += snprintf((configBuff + buffSize), (MEMORY_MAX - buffSize), ",\r\n\"buzzer\":{\"version\":%u,\"mode\":%u,\"start_motion_cycles\":%u,\"stop_motion_cycles\":%u},\r\n%s,",
 				0, 1, 10, 10, getEnvironmentConfigStr());
 
-		//CSC snprintf for temp/humidity and acclerometer data.
+		//CSC snprintf for temp/humidity and accelerometer data.
 		buffSize += snprintf((configBuff + buffSize), (MEMORY_MAX - buffSize), "\r\n%s,\r\n%s,\r\n\%s",
 				getTemperatureConfigStr(), getHumidityConfigStr(), getAccelConfigStr());
 
