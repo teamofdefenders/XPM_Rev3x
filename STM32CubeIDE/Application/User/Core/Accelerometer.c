@@ -1,7 +1,7 @@
 /**
   ******************************************************************************
   * @file    Accelerometer.c
-  * @author  Erik Pineda-A and Connor Coultas
+  * @author  Connor Coultas
   * @brief   driver for accelerometer
   ******************************************************************************
   * @attention
@@ -40,6 +40,8 @@ ACCEL_DEVICE_STATE_TYPE accelDevice;
 ACCEL_DATA_TYPE privateAccelData;
 ACCELERATION_PARAM_TYPE privateAccelParameters;
 
+char accErrorStr[CONFIG_ERR_MSG_SIZE] = {0};
+
 // TODO return status in all function returns that are currently "Void"
 
 /******************************************************
@@ -52,7 +54,7 @@ ACCELERATION_PARAM_TYPE privateAccelParameters;
  * 		   Currently configuring for low power mode at 50 HZ, 14-bit resolution
  * 		   Wake-Up interrupts are enabled at medium to low threshold with no minimum duration for detection
  *
- * 		   It is imperative to disable interrupts before changing interrupt functionality due to the device
+ * 		   If not a stop3 wake up, itt is imperative to disable interrupts before changing interrupt functionality due to the device
  * 		   possibly interrupting during i2c communication, causing a hanging program
  * @param  void
  * @retval void
@@ -63,26 +65,40 @@ void accelInit(void)
 	accelDevice.partNumber = LIS2DW; // default to be changed below
 	accelDevice.address = LIS2_SLAVE_ADDREESS;
 	accelDevice.state = ACC_OK;
-// KCS do who ami  and set the device part number
 	accelWhoAmI();
-//	HAL_NVIC_DisableIRQ(EXTI6_IRQn); //Disable Interrupts
-//	HAL_NVIC_DisableIRQ(GPIO_PIN_5);
-	accelWriteRegisterCommand(LIS2DW_CTRL_2, LIS2DW_SOFT_RESET); //Reset
-	accelWriteRegisterCommand(LIS2DW_CTRL_2, LIS2DW_REBOOOT); //Reboot
-	//Device needs up to 20 ms to reset according to data sheet
-	HAL_Delay(20);
-	setAccelMode(LIS_MODE_LOW_POWER); //Set power mode
-	setAccelResolution(LIS_RESOLUTION_14); //Set resolution
-	setAccelDataRate(LIS_DATA_RATE_50); //Set output data rate
-	accelWriteRegisterCommand(LIS2DW_CTRL_3, LIS2DW_CTRL_3_LIR); //Set latched interrupts
-	accelWriteRegisterCommand(LIS2DW_CTRL_6, LIS2DW_CTRL_6_SET); //Low noise selection
-	accelWriteRegisterCommand(LIS2DW_WAKE_DURATION, WRITE_ZERO); //Set wake duration
-	accelWriteRegisterCommand(LIS2DW_WAKE_THRESH_REG, LIS2DW_WAKE_THRESH_VAL); //Set wakeup threshold
-	accelWriteRegisterCommand(LIS2DW_FF_REG, LIS2DW_FREE_SET);
-	accelWriteRegisterCommand(LIS2DW_INT1_CTRL_4, LIS2DW_CTRL_4_SET); //Set Wake Up and FF interrupt
-	accelWriteRegisterCommand(LIS2DW_CTRL_7, LIS2DW_CTRL_7_SET); //Enable interrupts INT_Enable
-//	HAL_NVIC_EnableIRQ(EXTI6_IRQn); //Reenable
-//	HAL_NVIC_EnableIRQ(GPIO_PIN_5);
+
+	switch(accelDevice.partNumber)
+	{
+		case LIS2DW:
+			accelWriteRegisterCommand(LIS2DW_CTRL_2, LIS2DW_SOFT_RESET); //Reset
+			accelWriteRegisterCommand(LIS2DW_CTRL_2, LIS2DW_REBOOOT); //Reboot
+			//Device needs up to 20 ms to reset according to data sheet
+			HAL_Delay(20);
+			setAccelMode(LIS_MODE_LOW_POWER); //Set power mode
+			setAccelResolution(LIS_RESOLUTION_14); //Set resolution
+			setAccelDataRate(LIS_DATA_RATE_50); //Set output data rate
+			accelWriteRegisterCommand(LIS2DW_CTRL_3, LIS2DW_CTRL_3_LIR); //Set latched interrupts
+			accelWriteRegisterCommand(LIS2DW_CTRL_6, LIS2DW_CTRL_6_SET); //Low noise selection
+			accelWriteRegisterCommand(LIS2DW_WAKE_DURATION, WRITE_ZERO); //Set wake duration
+			accelWriteRegisterCommand(LIS2DW_WAKE_THRESH_REG, LIS2DW_WAKE_THRESH_VAL); //Set wakeup threshold
+			accelWriteRegisterCommand(LIS2DW_FF_REG, LIS2DW_FREE_SET);
+			accelWriteRegisterCommand(LIS2DW_INT1_CTRL_4, LIS2DW_CTRL_4_SET); //Set Wake Up and FF interrupt
+			accelWriteRegisterCommand(LIS2DW_CTRL_7, LIS2DW_CTRL_7_SET); //Enable interrupts INT_Enable
+			break;
+		case LIS2DUX:
+			accelWriteRegisterCommand(LIS2DUX_CTRL_1, LIS2DUX_SOFT_RESET);
+			HAL_Delay(20);
+			accelWriteRegisterCommand(LIS2DUX_CTRL_5, LIS2DUX_CTRL_5_SET); //Sets power mode
+			accelWriteRegisterCommand(LIS2DUX_CTRL_1, LIS2DUX_CTRL_1_SET); //Enables wake up on all axis
+			accelWriteRegisterCommand(LIS2DUX_WAKE_THRESH_REG, LIS2DUX_WAKE_THRESH_VAL); //Set wakeup threshold
+			accelWriteRegisterCommand(LIS2DUX_WAKE_DURATION, WRITE_ZERO); //Set wake duration
+			accelWriteRegisterCommand(LIS2DUX_INT_CNFG_REG, LIS2DUX_INT_ENABLE); //Enable interrupts
+			accelWriteRegisterCommand(LIS2DUX_ROUTE_INT1_REG, LIS2DUX_ROUTE_INT1_VAL);
+			break;
+
+		default:
+			PRINTF("Unidentified accelerometer\r\n");
+	}
 	accelClearLatch();
 	PRINTF("____ACCELEROMETER END INITIALIZATION_____\r\n\r\n");
 }
@@ -272,6 +288,7 @@ void accelWhoAmI(void)
 {
 	uint8_t partNum = accelReadRegister(LIS2_ID);
 
+	PRINTF("Part number: %d\r\n", partNum);
 	if(partNum == LIS2DW)
 	{
 		PRINTF("LIS2DW12 Identified\r\n");
@@ -391,17 +408,21 @@ void getAccelData(ACCEL_DATA_TYPE *extAccelData, bool acquireData)
  */
 void accelClearLatch(void)
 {
+	uint8_t sourceVal;
+	uint8_t wakeVal;
+	//PRINTF("Wake Value: %d\r\n", wakeVal);
+	uint8_t statusVal;
+	uint8_t counter = 0;
 	switch(accelDevice.partNumber)
 	{
 		case LIS2DW:
-			uint8_t sourceVal = accelReadRegister(LIS2DW_ALL_INT_SRC);
-			uint8_t wakeVal = accelReadRegister(LIS2DW_WAKE_SRC);
+			sourceVal = accelReadRegister(LIS2DW_ALL_INT_SRC);
+			wakeVal = accelReadRegister(LIS2DW_WAKE_SRC);
 			//PRINTF("Wake Value: %d\r\n", wakeVal);
-			uint8_t statusVal = accelReadRegister(LIS2DW_STATUS_REG);
+			statusVal = accelReadRegister(LIS2DW_STATUS_REG);
 			//PRINTF("Status Value: %d\r\n", statusVal);
 			sourceVal = accelReadRegister(LIS2DW_ALL_INT_SRC);
 
-			int counter = 0;
 			while(sourceVal != 0)
 			{
 				sourceVal = accelReadRegister(LIS2DW_ALL_INT_SRC);
@@ -428,7 +449,37 @@ void accelClearLatch(void)
 			accelTrigger = false;
 			break;
 		case LIS2DUX:
-			PRINTF("LIS2DUX unimplemented\r\n");
+			sourceVal = accelReadRegister(LIS2DUX_ALL_INT_SRC);
+			wakeVal = accelReadRegister(LIS2DUX_WAKE_SRC);
+			//PRINTF("Wake Value: %d\r\n", wakeVal);
+			statusVal = accelReadRegister(LIS2DUX_STATUS_REG);
+			//PRINTF("Status Value: %d\r\n", statusVal);
+			sourceVal = accelReadRegister(LIS2DUX_ALL_INT_SRC);
+
+			while(sourceVal != 0)
+			{
+				sourceVal = accelReadRegister(LIS2DUX_ALL_INT_SRC);
+				wakeVal = accelReadRegister(LIS2DUX_WAKE_SRC);
+				statusVal = accelReadRegister(LIS2DW_STATUS_REG);
+				if(counter == 10)
+				{
+					break;
+				}
+				counter++;
+			}
+
+			if(sourceVal == 0)
+			{
+				PRINTF("Latched interrupt cleared\r\n");
+				PRINTF("Source: %d\r\n\r\n", sourceVal);
+			}
+			else
+			{
+				PRINTF("Latched interrupt NOT cleared\r\n");
+				PRINTF("Source: %d\r\n\r\n", sourceVal);
+			}
+
+			accelTrigger = false;
 			break;
 		default:
 			PRINTF("Accelerometer not supported, can not clear latch\r\n");
@@ -1164,8 +1215,8 @@ void testWakeUpInterruptOccur(void)
 		//printAccelData(1);
 		if(accelTrigger)
 		{
-			handleAccelTrigger();
-			//testMode();
+			//handleAccelTrigger();
+			PRINTF("We are interrupting on LIS2DUX\r\n\r\n");
 		}
 	}
 }
@@ -1219,7 +1270,7 @@ bool decodeAccelConfigs(uint8_t *mqttMsg)
 	char thresholdTest [] = "\"threshold\":";
 	char hysteresisTest [] = "\"hysteresis\":";
 	char durationTest [] = "\"duration\":";
-	char mutingTest [] = "\"muting_period\"";
+	char mutingTest [] = "\"muting_period\":";
 	float hysteresis = 0.0;
 	bool hysterValid = false;
  	uint16_t mode = 0;
@@ -1234,12 +1285,15 @@ bool decodeAccelConfigs(uint8_t *mqttMsg)
 	uint8_t mute = 0;
 	bool muteValid = false;
 
+	char accelErrStr[CONFIG_ERR_MSG_SIZE] = "";
+	int buffSize = 0;
 	// Transfer MQTT message to a local buffer
 	Word_Transfer(Buff, (char*)mqttMsg);
 
 	char* substr = strstr(Buff, test);
 	if(substr)
 	{
+		buffSize += snprintf(accelErrStr, CONFIG_ERR_MSG_SIZE, "\"accelerometer\":[\"config_error\",");
 		char *verStr = strstr(substr, verTest);
 		if(verStr)
 		{
@@ -1250,7 +1304,7 @@ bool decodeAccelConfigs(uint8_t *mqttMsg)
 				if(version == 1)
 				{
 					char *modeStr = strstr(substr, modeTest);
-					if(modeStr && !isError)
+					if(modeStr)
 					{
 						modeStr += strlen(modeTest);
 						if(isdigit((unsigned char)modeStr[0]))
@@ -1265,22 +1319,25 @@ bool decodeAccelConfigs(uint8_t *mqttMsg)
 							{
 								PRINTF("Accelerometer mode is out of range [0-255]: %d\r\n", mode);
 								isError = true;
+								buffSize += snprintf((accelErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"mode_out_of_range\",");
 							}
 						}
 						else
 						{
 							isError = true;
 							PRINTF("Invalid data type for accelerometer mode\r\n");
+							buffSize += snprintf((accelErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_mode_type\",");
 						}
 					}
 					else
 					{
 						isError = true;
 						PRINTF("Mode not found in accel parameters string\r\n");
+						buffSize += snprintf((accelErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_mode\",");
 					}
 
 					char *rangeStr = strstr(substr, rangeTest);
-					if(rangeStr && !isError)
+					if(rangeStr)
 					{
 						rangeStr += strlen(rangeTest);
 						if(isdigit((unsigned char)rangeStr[0]))
@@ -1294,22 +1351,24 @@ bool decodeAccelConfigs(uint8_t *mqttMsg)
 							{
 								PRINTF("Accelerometer range is out of range [0-255]: %d\r\n", range);
 								isError = true;
+								buffSize += snprintf((accelErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"range_out_of_range\",");
 							}
 						}
 						else
 						{
 							isError = true;
 							PRINTF("Invalid data type for accelerometer range");
+							buffSize += snprintf((accelErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_range_type\",");
 						}
 					}
 					else
 					{
 						isError = true;
 						PRINTF("Range not found in accel parameters string\r\n");
+						buffSize += snprintf((accelErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_range\",");
 					}
-
 					char *thresholdStr = strstr(substr, thresholdTest);
-					if(thresholdStr && !isError)
+					if(thresholdStr)
 					{
 						thresholdStr += strlen(thresholdTest);
 						if(isdigit((unsigned char)thresholdStr[0]))
@@ -1323,22 +1382,25 @@ bool decodeAccelConfigs(uint8_t *mqttMsg)
 							{
 								PRINTF("Accelerometer threshold is out of range [0.0-65535.0]: %f\r\n", threshold);
 								isError = true;
+								buffSize += snprintf((accelErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"threshold_out_of_range\",");
 							}
 						}
 						else
 						{
 							isError = true;
 							PRINTF("Invalid data type for accelerometer threshold\r\n");
+							buffSize += snprintf((accelErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_threshold_type\",");
 						}
 					}
 					else
 					{
 						isError = true;
 						PRINTF("Threshold not found in accel parameters string\r\n");
+						buffSize += snprintf((accelErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_threshold\",");
 					}
 
 					char *hysteresisStr = strstr(substr, hysteresisTest);
-					if(hysteresisStr && !isError)
+					if(hysteresisStr)
 					{
 						hysteresisStr += strlen(hysteresisTest);
 						if(isdigit((unsigned char)hysteresisStr[0]))
@@ -1352,22 +1414,25 @@ bool decodeAccelConfigs(uint8_t *mqttMsg)
 							{
 								PRINTF("Accelerometer hysteresis is out of range [0.0-65535.0]: %f\r\n", hysteresis);
 								isError = true;
+								buffSize += snprintf((accelErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"hysteresis_out_of_range\",");
 							}
 						}
 						else
 						{
 							isError = true;
 							PRINTF("Invalid data type for accelerometer hysteresis\r\n");
+							buffSize += snprintf((accelErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_hysteresis_type\",");
 						}
 					}
 					else
 					{
 						isError = true;
 						PRINTF("Hysteresis not found in accel parameters string\r\n");
+						buffSize += snprintf((accelErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_hysteresis\",");
 					}
 
 					char *durationStr = strstr(substr, durationTest);
-					if(durationStr && !isError)
+					if(durationStr)
 					{
 						durationStr += strlen(durationTest);
 						if(isdigit((unsigned char)durationStr[0]))
@@ -1381,22 +1446,25 @@ bool decodeAccelConfigs(uint8_t *mqttMsg)
 							{
 								PRINTF("Accelerometer duration is out of range [0-65535]: %d\r\n", duration);
 								isError = true;
+								buffSize += snprintf((accelErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"duration_out_of_range\",");
 							}
 						}
 						else
 						{
 							isError = true;
 							PRINTF("Invalid data type for accelerometer duration\r\n");
+							buffSize += snprintf((accelErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_duration_type\",");
 						}
 					}
 					else
 					{
 						isError = true;
 						PRINTF("Duration not found in accel parameters string\r\n");
+						buffSize += snprintf((accelErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_duration\",");
 					}
 
 					char* muteStr = strstr(substr, mutingTest);
-					if(muteStr && !isError)
+					if(muteStr)
 					{
 						muteStr += strlen(mutingTest);
 						if(isdigit((unsigned char)muteStr[0]))
@@ -1410,36 +1478,42 @@ bool decodeAccelConfigs(uint8_t *mqttMsg)
 							{
 								PRINTF("Accelerometer mute period is out of range [0-65535]: %d\r\n", mute);
 								isError = true;
+								buffSize += snprintf((accelErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"mute_period_out_of_range\",");
 							}
 						}
 						else
 						{
 							isError = true;
 							PRINTF("Invalid data type for accelerometer mute period\r\n");
+							buffSize += snprintf((accelErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_mute_period_type\",");
 						}
 					}
 					else
 					{
 						isError = true;
 						PRINTF("Mute period not found in accel parameters string\r\n");
+						buffSize += snprintf((accelErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_mute_period\",");
 					}
 				}
 				else
 				{
 					isError = true;
 					PRINTF("Incorrect version number: %d\r\n", version);
+					buffSize += snprintf((accelErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"version_mismatch\",");
 				}
 			}
 			else
 			{
 				isError = true;
 				PRINTF("Invalid data type for accel version\r\n");
+				buffSize += snprintf((accelErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"version_mismatch\",");
 			}
 		}
 		else
 		{
 			isError = true;
 			PRINTF("No version found\r\n");
+			buffSize += snprintf((accelErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"version_missing\",");
 		}
 	}
 	else
@@ -1458,6 +1532,17 @@ bool decodeAccelConfigs(uint8_t *mqttMsg)
 		privateAccelParameters.threshold = threshInt;
 		uint32_t hysterInt = (uint32_t)(hysteresis * 1000.0);
 		privateAccelParameters.hysteresis = hysterInt;
+	}
+	else
+	{
+		if(buffSize > 0 && buffSize < CONFIG_ERR_MSG_SIZE - 2 && accelErrStr[0] != '\0')
+		{
+			if(accelErrStr[buffSize - 1] == ',')
+			{
+				accelErrStr[buffSize - 1] = ']';
+				addErrorString(accelErrStr);
+			}
+		}
 	}
 
 	return isError;

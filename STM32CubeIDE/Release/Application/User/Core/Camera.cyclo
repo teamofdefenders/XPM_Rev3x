@@ -6,3 +6,8 @@
 ../Application/User/Core/Camera.c:197:6:getCameraPower	1
 ../Application/User/Core/Camera.c:202:6:setCameraPower	2
 ../Application/User/Core/Camera.c:211:6:getCameraConfigStatus	1
+../Application/User/Core/Camera.c:217:6:cameraParametersInit	1
+../Application/User/Core/Camera.c:228:6:getCameraParameters	1
+../Application/User/Core/Camera.c:239:6:setCameraParameters	1
+../Application/User/Core/Camera.c:258:6:decodeCameraConfigs	37
+../Application/User/Core/Camera.c:554:7:getCamConfigStr	1

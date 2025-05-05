@@ -169,14 +169,16 @@ bool decodePIRConfigs(uint8_t *mqttMsg)
 {
 	bool isError = false;
 	uint8_t version = 255;
-	uint8_t mode = 255;
-	uint16_t mutePeriod = 0;
+	uint16_t mode = 255;
+	uint32_t mutePeriod = 0;
 	PIR_PARAMETER_TYPE decodedPirParams;
 	char Buff[MEMORY_MAX] = " ";
 	char test [] = "\"pir\":{";
 	char verTest[] = "\"version\":";
 	char modeTest [] = "\"mode\":";
 	char muteTest [] = "\"muting_period\":";
+	char pirErrStr[CONFIG_ERR_MSG_SIZE] = "";
+	int buffSize = 0;
 
 	//Need to get first to prevent overwriting non passed data such as even counter
 	getPirParameters(&decodedPirParams);
@@ -186,6 +188,7 @@ bool decodePIRConfigs(uint8_t *mqttMsg)
 	char* substr = strstr(Buff, test);
 	if(substr)
 	{
+		buffSize += snprintf(pirErrStr, CONFIG_ERR_MSG_SIZE, "\"pir\":[\"config_error\",");
 		Refresh_Watchdog;
 		char *verStr = strstr(substr, verTest);
 		if(verStr)
@@ -197,7 +200,7 @@ bool decodePIRConfigs(uint8_t *mqttMsg)
 				if(version == 0)
 				{
 					char *modeStr = strstr(substr, modeTest);
-					if(modeStr && !isError)
+					if(modeStr)
 					{
 						modeStr += strlen(modeTest);
 						if(isdigit((unsigned char)modeStr[0]))
@@ -211,21 +214,25 @@ bool decodePIRConfigs(uint8_t *mqttMsg)
 							else
 							{
 								PRINTF("PIR mode is out of range [0-255]: %d\r\n", mode);
+								buffSize += snprintf((pirErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"mode_out_of_range\",");
+								isError = true;
 							}
 						}
 						else
 						{
 							isError = true;
 							//"Invalid data type for mode"
+							buffSize += snprintf((pirErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_mode_type\",");
 						}
 					}
 					else
 					{
 						isError = true;
+						buffSize += snprintf((pirErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_mode\",");
 					}
 
 					char* muteStr = strstr(substr, muteTest);
-					if(muteStr && !isError)
+					if(muteStr)
 					{
 						muteStr += strlen(muteTest);
 						if(isdigit((unsigned char)muteStr[0]))
@@ -239,31 +246,38 @@ bool decodePIRConfigs(uint8_t *mqttMsg)
 							else
 							{
 								PRINTF("PIR muting period is out of range [0-255]: %d\r\n", mutePeriod);
+								buffSize += snprintf((pirErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"muting_period_out_of_range\",");
+								isError = true;
 							}
 						}
 						else
 						{
 							isError = true;
+							buffSize += snprintf((pirErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_muting_period_type\",");
 						}
 					}
 					else
 					{
 						isError = true;
+						buffSize += snprintf((pirErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_muting_period\",");
 					}
 				}
 				else
 				{
 					isError = true;
+					buffSize += snprintf((pirErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"version_mismatch\",");
 				}
 			}
 			else
 			{
 				isError = true;
+				buffSize += snprintf((pirErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_version_type\",");
 			}
 		}
 		else
 		{
 			isError = true;
+			buffSize += snprintf((pirErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_version\",");
 		}
 	}
 	else
@@ -277,6 +291,17 @@ bool decodePIRConfigs(uint8_t *mqttMsg)
 		Refresh_Watchdog;
 		PRINTF("Setting PIR Params:mode %d, cool down %d\r\n", decodedPirParams.mode, decodedPirParams.coolDown);
 		setPirParameters(decodedPirParams);
+	}
+	else
+	{
+		if(buffSize > 0 && buffSize < CONFIG_ERR_MSG_SIZE - 2 && pirErrStr[0] != '\0')
+		{
+			if(pirErrStr[buffSize - 1] == ',')
+			{
+				pirErrStr[buffSize - 1] = ']';
+				addErrorString(pirErrStr);
+			}
+		}
 	}
 
 	return isError;
@@ -310,6 +335,9 @@ bool decodeMotionFilter(uint8_t *mqttMsg, FILTER_TYPE sunPeriod)
 	char noMotionTest [] = "\"no_motion_window\":";
 	char nearMotionTest [] = "\"near_motion\":";
 	char verTest[] = "\"version\":";
+	char filterErrStr[CONFIG_ERR_MSG_SIZE] = "";
+	int buffSize = 0;
+
 
 	//Need to get first for completeness
 	getFilterParameters(&decodedFilterParams, sunPeriod );
@@ -325,6 +353,7 @@ bool decodeMotionFilter(uint8_t *mqttMsg, FILTER_TYPE sunPeriod)
 		if(filterStr)
 		{
 			PRINTF("Decoding Night Filter Parameters\r\n");
+			buffSize += snprintf(filterErrStr, CONFIG_ERR_MSG_SIZE, "\"motion_filter_night\":[\"config_error\",");
 		}
 		else
 		{
@@ -337,6 +366,7 @@ bool decodeMotionFilter(uint8_t *mqttMsg, FILTER_TYPE sunPeriod)
 		if(filterStr)
 		{
 			PRINTF("Decoding Day Filter Parameters\r\n");
+			buffSize += snprintf(filterErrStr, CONFIG_ERR_MSG_SIZE, "\"motion_filter_day\":[\"config_error\",");
 		}
 		else
 		{
@@ -352,7 +382,7 @@ bool decodeMotionFilter(uint8_t *mqttMsg, FILTER_TYPE sunPeriod)
 	if(!isError)
 	{
 		char* verStr = strstr(filterStr, verTest);
-		if(verStr && !isError)
+		if(verStr)
 		{
 			verStr += strlen(verTest);
 			if(isdigit((unsigned char)verStr[0]))
@@ -362,6 +392,7 @@ bool decodeMotionFilter(uint8_t *mqttMsg, FILTER_TYPE sunPeriod)
 			else
 			{
 				isError = true;
+				buffSize += snprintf((filterErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_version_type\",");
 			}
 		}
 		else
@@ -370,7 +401,7 @@ bool decodeMotionFilter(uint8_t *mqttMsg, FILTER_TYPE sunPeriod)
 		}
 
 		char* motionWindowStr = strstr(filterStr, motionWindowTest);
-		if(motionWindowStr && !isError)
+		if(motionWindowStr)
 		{
 			motionWindowStr += strlen(motionWindowTest);
 			if(isdigit((unsigned char)motionWindowStr[0]))
@@ -384,20 +415,24 @@ bool decodeMotionFilter(uint8_t *mqttMsg, FILTER_TYPE sunPeriod)
 				else
 				{
 					PRINTF("Motion window is out of range [0-65535]: %d\r\n", motionWindow);
+					buffSize += snprintf((filterErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"motion_confirm_window_out_of_range\",");
+					isError = true;
 				}
 			}
 			else
 			{
 				isError = true;
+				buffSize += snprintf((filterErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_motion_confirm_window_type\",");
 			}
 		}
 		else
 		{
 			isError = true;
+			buffSize += snprintf((filterErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_motion_confirm_window\",");
 		}
 
 		char* motionThreshStr = strstr(filterStr, motionThreshTest);
-		if(motionThreshStr && !isError)
+		if(motionThreshStr)
 		{
 			Refresh_Watchdog;
 			motionThreshStr += strlen(motionThreshTest);
@@ -411,20 +446,24 @@ bool decodeMotionFilter(uint8_t *mqttMsg, FILTER_TYPE sunPeriod)
 				else
 				{
 					PRINTF("Motion threshold is out of range [0-100]: %d\r\n", motionThreshold);
+					isError = true;
+					buffSize += snprintf((filterErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"motion_threshold_out_of_range\",");
 				}
 			}
 			else
 			{
 				isError = true;
+				buffSize += snprintf((filterErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_motion_threshold_type\",");
 			}
 		}
 		else
 		{
 			isError = true;
+			buffSize += snprintf((filterErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_motion_threshold\",");
 		}
 
 		char* balckoutStr = strstr(filterStr, blackoutTest);
-		if(balckoutStr && !isError)
+		if(balckoutStr)
 		{
 			Refresh_Watchdog;
 			balckoutStr += strlen(blackoutTest);
@@ -439,20 +478,24 @@ bool decodeMotionFilter(uint8_t *mqttMsg, FILTER_TYPE sunPeriod)
 				else
 				{
 					PRINTF("Blackout is out of range [0-65535]: %d\r\n", blackout);
+					isError = true;
+					buffSize += snprintf((filterErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"motion_blackout_out_of_range\",");
 				}
 			}
 			else
 			{
 				isError = true;
+				buffSize += snprintf((filterErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invald_motion_blackout_type\",");
 			}
 		}
 		else
 		{
 			isError = true;
+			buffSize += snprintf((filterErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_motion_blackout\",");
 		}
 
 		char* noMotionStr = strstr(filterStr, noMotionTest);
-		if(noMotionStr && !isError)
+		if(noMotionStr)
 		{
 			Refresh_Watchdog;
 			noMotionStr += strlen(noMotionTest);
@@ -466,20 +509,24 @@ bool decodeMotionFilter(uint8_t *mqttMsg, FILTER_TYPE sunPeriod)
 				else
 				{
 					PRINTF("No motion is out of range [0-255]: %d\r\n", noMotion);
+					isError = true;
+					buffSize += snprintf((filterErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"no_motion_window_out_of_range\",");
 				}
 			}
 			else
 			{
 				isError = true;
+				buffSize += snprintf((filterErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_no_motion_window_type\",");
 			}
 		}
 		else
 		{
 			isError = true;
+			buffSize += snprintf((filterErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_no_motion_window\",");
 		}
 
 		char* nearMotionStr = strstr(filterStr, nearMotionTest);
-		if(nearMotionStr && !isError)
+		if(nearMotionStr)
 		{
 			Refresh_Watchdog;
 			nearMotionStr += strlen(nearMotionTest);
@@ -493,16 +540,20 @@ bool decodeMotionFilter(uint8_t *mqttMsg, FILTER_TYPE sunPeriod)
 				else
 				{
 					PRINTF("Near motion is out of range [0-100]: %d\r\n", nearMotion);
+					isError = true;
+					buffSize += snprintf((filterErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"near_motion_out_of_range\",");
 				}
 			}
 			else
 			{
 				isError = true;
+				buffSize += snprintf((filterErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_near_motion_type\",");
 			}
 		}
 		else
 		{
 			isError = true;
+			buffSize += snprintf((filterErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_near_motion\",");
 		}
 	}
 	else
@@ -522,6 +573,17 @@ bool decodeMotionFilter(uint8_t *mqttMsg, FILTER_TYPE sunPeriod)
 				decodedFilterParams.No_Motion_Detection_Window );
 
 		setFilterParameters(decodedFilterParams, sunPeriod);
+	}
+	else
+	{
+		if(buffSize > 0 && buffSize < CONFIG_ERR_MSG_SIZE - 2 && filterErrStr[0] != '\0')
+		{
+			if(filterErrStr[buffSize - 1] == ',')
+			{
+				filterErrStr[buffSize - 1] = ']';
+				addErrorString(filterErrStr);
+			}
+		}
 	}
 
 	return isError;

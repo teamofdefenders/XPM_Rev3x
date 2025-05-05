@@ -13,6 +13,7 @@
 #define ENVIRONMENT_H_
 
 #include "Functions.h"
+#include "string.h"
 
 //Private definitions
 #define DEF_ENV_SAMPLE 1800 //Default sample period seconds
@@ -29,5 +30,9 @@
 #define DEF_LOW_HUM 20
 #define DEF_HIGH_HUM 90
 #define DEF_HUM_HYSTERESIS 5
+#define ENV_CONFIG_MSG_SIZE 2000
+#define ENV_CONFIG_VERSION 0
+#define TEMP_CONFIG_VERSION 0
+#define HUM_CONFIG_VERSION 0
 
 #endif

@@ -28,6 +28,9 @@
 #define UNIQUE_Device_ID (*(volatile uint32_t*)0x0BFA0700)
 #define Is_Pin_High(port,pin) (HAL_GPIO_ReadPin ( port , pin ) == GPIO_PIN_SET)
 #define Is_Pin_Low(port,pin) (HAL_GPIO_ReadPin ( port , pin ) == GPIO_PIN_RESET)
+#define CONFIG_ERR_MSG_SIZE 500 //Change to more appropriate size after testing
+#define CONTAINER_INIT_SIZE 10
+#define CONTAINER_RESIZE_CHUNK 2
 
 
 #define OTA_FLASH_SIZE 160000  // OTA flash arbitrary maximum size
@@ -72,7 +75,7 @@
 #define UPLINK_DIAGNOSTIC_MSG_SIZE 250
 
 
-#define DOWNLINK_TEST_MSG_SIZE 250
+#define DOWNLINK_TEST_MSG_SIZE 2000
 #define PIR_DOWNLINK_TEST_MSG_SIZE 600
 
 #define ISO_TIMESTAMP_LENGTH 25
@@ -429,6 +432,14 @@ typedef enum
 	LIS_RESOLUTION_14,
 	LIS_RESOLUTION_ERROR
 }ACCEL_RESOLUTION;
+
+
+typedef struct
+{
+	char (*strings)[CONFIG_ERR_MSG_SIZE]; //Pointer to strings
+	uint8_t count;	//Size of the container
+	uint8_t capacity; //Number of strings we can hold
+}STRING_CONTAINER;
 
 typedef enum
 {
@@ -861,6 +872,14 @@ uint8_t getMode(HW_MODULE_TYPE hwSubModule);
 void environmentParametersInit(void);
 void getEnvironmentParameters(ENVIRONMENT_PARAM_TYPE *extParams);
 void getTempSensorData(TEMPERATURE_DATA_TYPE *extTempParams);
+
+void setEnvironmentParameters(ENVIRONMENT_PARAM_TYPE extParams);
+bool decodeEnvironmentConfigs(uint8_t* mqttMsg);
+bool decodeTemperatureConfigs(uint8_t* mqttMsg);
+bool decodeHumidityConfigs(uint8_t* mqttMsg);
+char* getEnvironmentConfigStr(void);
+char* getTemperatureConfigStr(void);
+char* getHumidityConfigStr(void);
 //end environment
 
 void test ( MEM_PTR *Mem );
@@ -931,6 +950,14 @@ bool decodeCameraConfigs(uint8_t* mqttMsg);
 char* getCamConfigStr(void);
 // Functions.c file
 
+//Container
+int8_t initContainer(STRING_CONTAINER* container);
+void printContainer(STRING_CONTAINER* container);
+int8_t addErrorString(char* externalStr);
+int8_t addToContainer(STRING_CONTAINER* container, const char* str);
+void freeContainer(STRING_CONTAINER* container);
+void sendConfigErrors(MEM_PTR *Mem, STRING_CONTAINER* container);
+//End container
 void test ( MEM_PTR *Mem );
 
 bool IsError ( MEM_PTR *Mem );
@@ -972,7 +999,7 @@ bool checkCellandFix(MEM_PTR *Data_Ptr);
 void buzzerTone(void);
 void restartModem (void);
 uint16_t minValue4 (uint16_t HB, uint16_t PIR, uint16_t ACC, uint16_t MUTEGPS);
-
+//End Functions.c
 
 // skywire.c file
 void fakeMissing(OTA_FILE_TYPE *OTAData );
@@ -1003,6 +1030,8 @@ void setAccelMode(ACCEL_POWER_MODE setMode);
 void setAccelResolution(ACCEL_RESOLUTION setResolution);
 void setAccelFullScaleRange(ACCEL_FULL_SCALE setRange);
 uint16_t getAccelMutePeriod(void);
+char* getAccelConfigStr(void);
+char* getAccelErrStr(void);
 //Test
 void testWakeUpInterruptOccur(void);
 void testMode(void);

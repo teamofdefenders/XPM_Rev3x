@@ -124,12 +124,12 @@ bool decodeGPSConfigs(uint8_t *mqttMsg)
 {
 	bool isError = false;
 	uint8_t version = 255;
-	uint8_t mode = 255;
-	uint16_t acPeriod = 0;
-	uint16_t distance = 0;
-	uint16_t alarmWindow = 0;
+	uint16_t mode = 255;
+	uint32_t acPeriod = 0;
+	uint32_t distance = 0;
+	uint32_t alarmWindow = 0;
 	uint16_t alarmSample = 0;
-	uint16_t hysteresis = 0;
+	uint32_t hysteresis = 0;
 	GPS_PARAMETER_TYPE decodedGpsParams;
 	char Buff[MEMORY_MAX] = " ";
 	char test [] = "\"gps\":{";
@@ -140,16 +140,19 @@ bool decodeGPSConfigs(uint8_t *mqttMsg)
 	char alarmWindowTest [] = "\"alarm_window\":";
 	char alarmSampleTest [] = "\"alarm_sample_period\":";
 	char hysteresisTest [] = "\"hysteresis\":";
+	char gpsErrStr[CONFIG_ERR_MSG_SIZE] = "";
+	int buffSize = 0;
 
 	// Transfer MQTT message to a local buffer
 	Word_Transfer(Buff, (char*)mqttMsg);
 
 	char *substr = strstr(Buff, test);
 	Refresh_Watchdog;
-	if(substr && !isError)
+	if(substr)
 	{
+		buffSize += snprintf(gpsErrStr, CONFIG_ERR_MSG_SIZE, "\"gps\":[\"config_error\",");
 		char *verStr = strstr(substr, verTest);
-		if(verStr && !isError)
+		if(verStr)
 		{
 			Refresh_Watchdog;
 			verStr += strlen(verTest);
@@ -159,12 +162,11 @@ bool decodeGPSConfigs(uint8_t *mqttMsg)
 				if(version == 0)
 				{
 					char *modeStr = strstr(substr, modeTest);
-					if(modeStr && !isError)
+					if(modeStr)
 					{
 						modeStr += strlen(modeTest);
 						if(isdigit((unsigned char)modeStr[0]))
 						{
-							Refresh_Watchdog;
 							mode = atoi(modeStr);
 							if(mode >= 0 && mode <= 255)
 							{
@@ -172,24 +174,28 @@ bool decodeGPSConfigs(uint8_t *mqttMsg)
 							}
 							else
 							{
+								isError = true;
 								PRINTF("GPS mode is out of range [0-255]: %d\r\n", mode);
+								buffSize += snprintf((gpsErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"mode_out_of_range\",");
 							}
 						}
 						else
 						{
 							isError = true;
 							//"Invalid data type for mode"
+							buffSize += snprintf((gpsErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_mode_type\",");
 						}
 					}
 					else
 					{
 						isError = true;
+						buffSize += snprintf((gpsErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_mode\",");
 						//"Mode not found in GPS message"
 					}
 
 					char *acPeriodStr = strstr(substr, acPeriodTest);
 					Refresh_Watchdog;
-					if(acPeriodStr && !isError)
+					if(acPeriodStr)
 					{
 						Refresh_Watchdog;
 						acPeriodStr += strlen(acPeriodTest);
@@ -202,24 +208,28 @@ bool decodeGPSConfigs(uint8_t *mqttMsg)
 							}
 							else
 							{
+								isError = true;
 								PRINTF("GPS acquisition period is out of range [0-65535]: %d\r\n", acPeriod);
+								buffSize += snprintf((gpsErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"acquisition_period_out_of_range\",");
 							}
 						}
 						else
 						{
 							isError = true;
 							//"Invalid data type for acquisition period"
+							buffSize += snprintf((gpsErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_acquisition_period_type\",");
 						}
 					}
 					else
 					{
 						isError = true;
 						//"Acquisition period not found in GPS message"
+						buffSize += snprintf((gpsErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_acquisition_period\",");
 					}
 
 					char *geoDistStr = strstr(substr, geoDistTest);
 					Refresh_Watchdog;
-					if(geoDistStr && !isError)
+					if(geoDistStr)
 					{
 						Refresh_Watchdog;
 						geoDistStr += strlen(geoDistTest);
@@ -232,24 +242,27 @@ bool decodeGPSConfigs(uint8_t *mqttMsg)
 							}
 							else
 							{
+								isError = true;
 								PRINTF("GPS threshold distance is out of range [0-65535]: %d\r\n", distance);
+								buffSize += snprintf((gpsErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"threshold_distance_out_of_range\",");
 							}
 						}
 						else
 						{
 							isError = true;
 							//"Invalid data type for threshold distance"
+							buffSize += snprintf((gpsErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_threshold_distance_type\",");
 						}
 					}
 					else
 					{
 						isError = true;
-						//"Threshold distance not found in GPS message"
+						buffSize += snprintf((gpsErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_threshold_distance\",");
 					}
 
 					char *alarmWindowStr = strstr(substr, alarmWindowTest);
 					Refresh_Watchdog;
-					if(geoDistStr && !isError)
+					if(geoDistStr)
 					{
 						alarmWindowStr += strlen(alarmWindowTest);
 						if(isdigit((unsigned char)alarmWindowStr[0]))
@@ -262,24 +275,27 @@ bool decodeGPSConfigs(uint8_t *mqttMsg)
 							}
 							else
 							{
+								isError = true;
 								PRINTF("GPS alarm window is out of range [0-65535]: %d\r\n", distance);
+								buffSize += snprintf((gpsErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"alarm_window_out_of_range\",");
 							}
 						}
 						else
 						{
 							isError = true;
 							//"Invalid data type for alarm window"
+							buffSize += snprintf((gpsErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_alarm_window_type\",");
 						}
 					}
 					else
 					{
 						isError = true;
-						//"Alarm window not found in GPS message"
+						buffSize += snprintf((gpsErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_alarm_window\",");
 					}
 
 					char *alarmSampleStr = strstr(substr, alarmSampleTest);
 					Refresh_Watchdog;
-					if(alarmSampleStr && !isError)
+					if(alarmSampleStr)
 					{
 						alarmSampleStr += strlen(alarmSampleTest);
 						if(isdigit((unsigned char)alarmSampleStr[0]))
@@ -292,24 +308,26 @@ bool decodeGPSConfigs(uint8_t *mqttMsg)
 							}
 							else
 							{
+								isError = true;
 								PRINTF("GPS alarm sample period is out of range [0-255]: %d\r\n", distance);
+								buffSize += snprintf((gpsErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"alarm_sample_period_out_of_range\",");
 							}
 						}
 						else
 						{
 							isError = true;
-							//"Invalid data type for alarm sample period"
+							buffSize += snprintf((gpsErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_alarm_sample_period_type\",");
 						}
 					}
 					else
 					{
 						isError = true;
-						//"Alarm sample period not found in GPS message"
+						buffSize += snprintf((gpsErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_alarm_sample_period\",");
 					}
 
 					char *hysteresisStr = strstr(substr, hysteresisTest);
 					Refresh_Watchdog;
-					if(hysteresisStr && !isError)
+					if(hysteresisStr)
 					{
 						Refresh_Watchdog;
 						hysteresisStr += strlen(hysteresisTest);
@@ -322,37 +340,41 @@ bool decodeGPSConfigs(uint8_t *mqttMsg)
 							}
 							else
 							{
+								isError = true;
 								PRINTF("GPS hysteresis is out of range [0-65535]: %d\r\n", distance);
+								buffSize += snprintf((gpsErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"hysteresis_out_of_range\",");
 							}
 						}
 						else
 						{
 							isError = true;
-							//"Invalid data type for hysteresis"
+							buffSize += snprintf((gpsErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_hysteresis_type\",");
 						}
 					}
 					else
 					{
 						isError = true;
-						//"Hysteresis not found in GPS message"
+						buffSize += snprintf((gpsErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_hysteresis\",");
 					}
 				}
 				else
 				{
 					isError = true;
 					PRINTF("Invalid version number decoded: %d\r\n", version);
+					buffSize += snprintf((gpsErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"version_mismatch\",");
 				}
 			}
 			else
 			{
 				isError = true;
 				//"Invalid data type for version"
+				buffSize += snprintf((gpsErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_version_type\",");
 			}
 		}
 		else
 		{
 			isError = true;
-			//"Version not found in GPS message"
+			buffSize += snprintf((gpsErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_version\",");
 		}
 	}
 	else
@@ -368,6 +390,17 @@ bool decodeGPSConfigs(uint8_t *mqttMsg)
 				decodedGpsParams.mode, decodedGpsParams.alarmSamplePeriod, decodedGpsParams.alarmTime, decodedGpsParams.gpsInterval, decodedGpsParams.geofenceDistance,decodedGpsParams.movementHysteresis);
 
 		setGpsParameters(decodedGpsParams);
+	}
+	else
+	{
+		if(buffSize > 0 && buffSize < CONFIG_ERR_MSG_SIZE - 2 && gpsErrStr[0] != '\0')
+		{
+			if(gpsErrStr[buffSize - 1] == ',')
+			{
+				gpsErrStr[buffSize - 1] = ']';
+				addErrorString(gpsErrStr);
+			}
+		}
 	}
 
 	PRINTF("GPS decode error is %d\r\n", isError);
@@ -767,7 +800,9 @@ void sendGPS (MEM_PTR *Data_Ptr)
 	}
 }
 
+
 uint16_t getMutePeriodGPS(void)
 {
 	return privateGpsParameters.alarmSamplePeriod;
 }
+

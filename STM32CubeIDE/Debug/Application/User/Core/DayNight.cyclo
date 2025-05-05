@@ -6,5 +6,5 @@
 ../Application/User/Core/DayNight.c:98:6:isNight2	7
 ../Application/User/Core/DayNight.c:141:6:isTimeDefault	2
 ../Application/User/Core/DayNight.c:168:6:setLastEvent	1
-../Application/User/Core/DayNight.c:180:6:decodeDayNightConfigs	19
-../Application/User/Core/DayNight.c:303:7:dayNightConfigStr	4
+../Application/User/Core/DayNight.c:180:6:decodeDayNightConfigs	24
+../Application/User/Core/DayNight.c:332:7:dayNightConfigStr	4

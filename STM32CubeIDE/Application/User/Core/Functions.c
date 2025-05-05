@@ -115,6 +115,7 @@ bool wakeupOverlap = false;
 bool cellInitialized = false;
 
 bool hbTimeChanged = false;
+STRING_CONTAINER configErrContainer;
 
 //enables/disables PIR mute period, tradeshow true is no mute period
 bool tradeshow = true;
@@ -163,7 +164,7 @@ void PACKAGE_Init ( MEM_PTR *Data_Ptr )
 	CELL_Set_PDP ( PDP_NOT_SET );
 #endif // SKYWIRE_MODEM
 	// Added charger detect, subtracted GPS update for Gage demo
-	_State = CHARGER_DETECT + WAKE_STATE + PIC_UPDT + UPDATE_SERVER + ACCEL_UPDT + GPS_UPDT + BUZZER_TOGGLE; //main flags
+	_State = CHARGER_DETECT + WAKE_STATE + PIC_UPDT + UPDATE_SERVER + ACCEL_UPDT + HUMD_UPDT + TEMP_UPDT + GPS_UPDT + BUZZER_TOGGLE; //main flags
 	//	_State = WAKE_STATE + PIC_UPDT + UPDATE_SERVER  + BUZZER_TOGGLE; // for testing
 	//	_State = WAKE_STATE + PIC_UPDT + UPDATE_SERVER + CELL_UPDT + GPS_UPDT + BUZZER_TOGGLE; // for testing
 	//	_State = WAKE_STATE + PIC_UPDT + UPDATE_SERVER + GPS_UPDT + ACCEL_UPDT + HUMD_UPDT + TEMP_UPDT + BUZZER_TOGGLE;
@@ -195,6 +196,7 @@ void memory_Init (MEM_PTR *Data_Ptr )
 		accelDataInit(); //Initialize accelerometer data
 		accelParametersInit(); //Initialize accelerometer parameters
 		cameraParametersInit();
+		environmentParametersInit();
 
 		if ( latencyMin )
 		{
@@ -301,11 +303,23 @@ void memory_Init (MEM_PTR *Data_Ptr )
 		defaultSet = true;
 	}
 
+	ENVIRONMENT_PARAM_TYPE localEnvCheck;
+	getEnvironmentParameters(&localEnvCheck);
+	if(localEnvCheck.sensorWarmUp == 0)
+	{
+		PRINTF("No Environment info found, setting to default \r\n");
+		environmentParametersInit();
+		defaultSet = true;
+	}
+
 	if(defaultSet)
 	{
 		XPS_paramStore(Data_Ptr);
 		saveParamDataToFlash(Data_Ptr);
 	}
+
+	//Initializes container for configuration error strings
+	initContainer(&configErrContainer);
 }
 
 void memoryTest1 ( MEM_PTR *Data_Ptr )
@@ -456,7 +470,7 @@ void Component_Initalizer ( MEM_PTR *Data_Ptr )
 		Enable_Modem_PWR(Data_Ptr);
 		//Set this parameter for Active if necessary
 		bool passiveAntenna = true;
-		if(passiveAntenna)
+		if(!passiveAntenna)
 		{
 			GPSActiveAntennaON(Data_Ptr);
 		}
@@ -465,7 +479,6 @@ void Component_Initalizer ( MEM_PTR *Data_Ptr )
 	}
 
 	accelInit();
-	handleAccelTrigger();
 }
 
 /******************************************************
@@ -3118,6 +3131,27 @@ void selectDownlinkOperation(MEM_PTR *Data_Ptr, MACHINE_STATE_TYPE stateOfDevice
 				updateShadowRegister = true;
 			}
 			Refresh_Watchdog
+			if(!decodeAccelConfigs(downLinkPackets.mQTTMessage[opItter]))
+			{
+				PRINTF("Accelerometer downlink found\r\n");
+				updateShadowRegister = true;
+			}
+			if(!decodeEnvironmentConfigs(downLinkPackets.mQTTMessage[opItter]))
+			{
+				PRINTF("Environment downlink found\r\n");
+				updateShadowRegister = true;
+			}
+			if(!decodeHumidityConfigs(downLinkPackets.mQTTMessage[opItter]))
+			{
+				PRINTF("Humidity downlink found\r\n");
+				updateShadowRegister = true;
+			}
+			if(!decodeTemperatureConfigs(downLinkPackets.mQTTMessage[opItter]))
+			{
+				PRINTF("Temperature downlink found\r\n");
+				updateShadowRegister = true;
+			}
+			
 			if(!decodeCameraConfigs(downLinkPackets.mQTTMessage[opItter]))
 			{
 				PRINTF("Camera downlink found\r\n");
@@ -3128,6 +3162,13 @@ void selectDownlinkOperation(MEM_PTR *Data_Ptr, MACHINE_STATE_TYPE stateOfDevice
 			{
 				XPS_paramStore(Data_Ptr);
 			}
+
+			//Container functions do nothing if empty
+			printContainer(&configErrContainer);
+			sendConfigErrors(&memory, &configErrContainer);
+			freeContainer(&configErrContainer);
+			initContainer(&configErrContainer);
+
 
 			clearMqttMsg(opItter);
 			sendDeviceConfig(Data_Ptr, CONFIG_ACK);
@@ -4420,6 +4461,165 @@ bool decodeCommand(uint8_t *msg, char *testStr)
 	return retError;
 }
 
+//Container Functions
+/**
+ * @brief  Initializes the string container with 10 spots for config errors.
+ * @note   Called in memory_Init after all the parameters are received
+ * @param  STRING_CONTAINER* container representing container to be initialized
+ * @retval returns -1 if malloc fails, 0 if it passes
+ */
+int8_t initContainer(STRING_CONTAINER* container)
+{
+	int8_t statusReturn = 0;
+    container->strings = malloc(CONTAINER_INIT_SIZE * CONFIG_ERR_MSG_SIZE);
+
+    if(!container->strings)
+    {
+		container->count = 0;
+		container->capacity = 0;
+		statusReturn = -1; // allocation failed
+		PRINTF("Container initialization failed\r\n");
+    }
+    else
+    {
+    	container->count = 0;
+    	container->capacity = CONTAINER_INIT_SIZE;
+    	PRINTF("Container initialization passed\r\n");
+    }
+
+    return statusReturn;
+}
+
+/**
+ * @brief  Adds to container and checks for resize
+ * @note   Handles resizing and only allows to add 250 characters
+ * @param  STRING_CONTAINER* container representing container to add
+ * 		   const char* str representing the string to add
+ * @retval returns -1 if realloc fails
+ */
+int8_t addToContainer(STRING_CONTAINER* container, const char* str)
+{
+	int8_t statusReturn = 0;
+
+	if (container->count >= container->capacity)
+	{
+		uint16_t newCapacity = container->capacity + CONTAINER_RESIZE_CHUNK;
+		char (*newArray)[CONFIG_ERR_MSG_SIZE] = realloc(container->strings, newCapacity * CONFIG_ERR_MSG_SIZE);
+
+		if (!newArray)
+		{
+			PRINTF("Container reallocation failed\r\n");
+			statusReturn = -1;
+		}
+		else
+		{
+			container->strings = newArray;
+			container->capacity = newCapacity;
+			PRINTF("Container reallocation succeeded, new capacity = %d\r\n", container->capacity);
+		}
+	}
+
+	if (statusReturn == 0)
+	{
+		strncpy(container->strings[container->count], str, CONFIG_ERR_MSG_SIZE - 1);
+		container->strings[container->count][CONFIG_ERR_MSG_SIZE - 1] = '\0';
+		container->count++;
+	}
+
+	return statusReturn;
+}
+
+/**
+ * @brief  Prints container contents.
+ * @note   Mostly for debugging
+ * @param  STRING_CONTAINER* container container to print
+ * @retval void
+ */
+void printContainer(STRING_CONTAINER* container)
+{
+	if (container->count == 0)
+	{
+		PRINTF("Container is empty\r\n");
+		return;
+	}
+
+    for (uint16_t i = 0; i < container->count; i++)
+    {
+        PRINTF("[%d]: %s\r\n", i, container->strings[i]);
+    }
+}
+
+/**
+ * @brief  Frees container
+ * @note   Imperative to not overflow heap. Should call after sending errors.
+ * @param  STRING_CONTAINER* container container to free
+ * @retval void
+ */
+void freeContainer(STRING_CONTAINER* container)
+{
+    free(container->strings);
+    container->strings = NULL;
+    container->count = 0;
+    container->capacity = 0;
+    PRINTF("Container freed\r\n");
+}
+
+/**
+ * @brief  Makes container a single string and sends it as a diagnostic
+ * @note
+ * @param  MEM_PTR *Mem needed in sendDiagnostic
+ * 		   STRING_CONTAINER* container, container to concatinate
+ * @retval void
+ */
+void sendConfigErrors(MEM_PTR *Mem, STRING_CONTAINER* container)
+{
+	if (container->count == 0)
+	{
+		PRINTF("Container is empty\r\n");
+		return;
+	}
+	else if (container->count <= (MEMORY_MAX/CONFIG_ERR_MSG_SIZE) - 1)
+	{
+		char sendBuff[MEMORY_MAX];
+		int buffSize = 0;
+		for(int i = 0; i < container->count; i++)
+		{
+			buffSize += snprintf((sendBuff + buffSize), (MEMORY_MAX - buffSize), "%s,", container->strings[i]);
+		}
+
+		if(buffSize > 0 && buffSize < (MEMORY_MAX - CONFIG_ERR_MSG_SIZE) && sendBuff[0] != '\0')
+		{
+			if(sendBuff[buffSize - 1] == ',')
+			{
+				sendBuff[buffSize - 1] = '\0';
+				buffSize--;
+				PRINTF("%s\r\n", sendBuff);
+				sendDiagnostic(Mem, sendBuff);
+			}
+		}
+		else
+		{
+			PRINTF("Buffer overflow, not sending\r\n");
+		}
+	}
+	else
+	{
+		//Need to packetize because we have too many errors
+	}
+}
+
+/**
+ * @brief  Accessor for decode functions to add errors to containter
+ * @note
+ * @param  char* externalStr, error string to add
+ * @retval returns status code of addToContainer
+ */
+int8_t addErrorString(char* externalStr)
+{
+	int8_t retVal = 0;
+	retVal = addToContainer(&configErrContainer, externalStr);
+	return retVal;
+}
 /**
  * @brief  gets the state of the charger cable; unplugged is false
  * @note   move to a battery.c file

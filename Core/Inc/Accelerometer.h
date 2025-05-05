@@ -124,7 +124,26 @@ typedef enum
 	LIS2DW_WAKE_THRESH_VAL = 0x0D,
 	LIS2DW_X_OFFSET = 0x3C,
 	LIS2DW_Y_OFFSET = 0x3D,
-	LIS2DW_Z_OFFSET = 0x3E
+	LIS2DW_Z_OFFSET = 0x3E,
+	//End LIS2DW12
+
+	//Begin LIS2DUX12
+	LIS2DUX_CTRL_1 = 0x10,
+	LIS2DUX_CTRL_1_SET = 0x03, //Enables wake up events on all 3 axis
+	LIS2DUX_SOFT_RESET = 0x20, //Soft reset
+	LIS2DUX_CTRL_5 = 0x14, //Has ODR, Bandwidth, and Full-Scale selection
+	LIS2DUX_CTRL_5_SET = 0x30, //Set data rate 25hz ultra low power, default BW and FSR
+	LIS2DUX_WAKE_THRESH_REG = 0x1C, //Wake up threshold register
+	LIS2DUX_WAKE_THRESH_VAL = 0x0D,
+	LIS2DUX_WAKE_DURATION = 0x1D,
+	LIS2DUX_INT_CNFG_REG = 0x17, //Interrupt configure register
+	LIS2DUX_INT_ENABLE = 0x03, //Enables and latches interrupts
+	LIS2DUX_ROUTE_INT1_REG = 0x1F,
+	LIS2DUX_ROUTE_INT1_VAL = 0x30, //Enables Wake-up and FF interrupts
+	LIS2DUX_ALL_INT_SRC = 0x24,	//All int source register
+	LIS2DUX_WAKE_SRC = 0x21,	//Wake up source register
+	LIS2DUX_STATUS_REG = 0x25
+
 
 } ACCEL_I2C_Command;
 

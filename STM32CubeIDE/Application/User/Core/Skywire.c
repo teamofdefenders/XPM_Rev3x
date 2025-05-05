@@ -4247,12 +4247,12 @@ void sendDeviceConfig( MEM_PTR *Data_Ptr, STATUS_UPLINK_TYPE uplnkType )
 		buffSize += snprintf((configBuff + buffSize), (MEMORY_MAX - buffSize), ",\r\n%s", getPirConfigStr());
 
 		//CSC snprintf for buzzer and environment information
-		buffSize += snprintf((configBuff + buffSize), (MEMORY_MAX - buffSize), "\r\n,\"buzzer\":{\"version\":%u,\"mode\":%u,\"start_motion_cycles\":%u,\"stop_motion_cycles\":%u},\"environment\":{\"version\":%u,\"sample_period\":%u,\"alarm_window\":%u,\"alarm_sample_period\":%u,\"muting_period\":%u,\"warm_up\":%u,\"charger_disable_temp\":%u}",
-				0, 1, 10, 10, 0, 15, 30, 15, 30,2,0);
+		buffSize += snprintf((configBuff + buffSize), (MEMORY_MAX - buffSize), ",\r\n\"buzzer\":{\"version\":%u,\"mode\":%u,\"start_motion_cycles\":%u,\"stop_motion_cycles\":%u},\r\n%s,",
+				0, 1, 10, 10, getEnvironmentConfigStr());
 
 		//CSC snprintf for temp/humidity and acclerometer data.
-		buffSize += snprintf((configBuff + buffSize), (MEMORY_MAX - buffSize), ",\"temperature\":{\"version\":%u,\"mode\":%u,\"low_threshold\":%d,\"high_threshold\":%d,\"hysteresis\":%d},\"humidity\":{\"version\":%u,\"mode\":%u,\"low_threshold\":%d,\"high_threshold\":%d,\"hysteresis\":%d},\r\n\%s",
-				0, 1, -10, 100, 75, 0, 1, 10, 80, 65, getAccelConfigStr());
+		buffSize += snprintf((configBuff + buffSize), (MEMORY_MAX - buffSize), "\r\n%s,\r\n%s,\r\n\%s",
+				getTemperatureConfigStr(), getHumidityConfigStr(), getAccelConfigStr());
 
 		//CSC snprintf for gps and camera
 		buffSize += snprintf((configBuff + buffSize), (MEMORY_MAX - buffSize), ",\r\n%s,\r\n%s,",

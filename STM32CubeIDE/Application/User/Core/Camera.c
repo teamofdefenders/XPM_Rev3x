@@ -30,7 +30,7 @@ bool powerStatus = false;
 bool isArcucamConfigured = false;
 extern RTC_HandleTypeDef hrtc;
 CAM_STATUS_REG cameraDataAndState;
-
+CAMERA_PARAMETER_TYPE privateCameraParameters;
 /******************************************************
  Define Controls
  Note:
@@ -214,43 +214,364 @@ bool getCameraConfigStatus ( void )
 }
 
 
-// KCS reference for adding Camera configuration
-// void cameraParametersInit(void)
-//
+void cameraParametersInit()
+{
+	privateCameraParameters.mode = DEF_CAM_MODE;
+	privateCameraParameters.warmUp = DEF_CAM_WARMUP;
+	privateCameraParameters.picturesPerEvent = DEF_CAM_PIC_PER_MOTION;
+	privateCameraParameters.pictureInterval = DEF_CAM_PIC_INTERVAL;
+	privateCameraParameters.samplePictureTime.hours = DEF_CAM_SAMPLE_HOUR;
+	privateCameraParameters.samplePictureTime.minutes = DEF_CAM_SAMPLE_MIN;
+	privateCameraParameters.samplePicNumber = DEF_CAM_NUM_SAMPLES;
+}
 
-// void getCameraParameters(GPS_PARAMETER_TYPE *extGpsParameters)
+void getCameraParameters(CAMERA_PARAMETER_TYPE *extCamParams)
+{
+	extCamParams->mode = privateCameraParameters.mode;
+	extCamParams->warmUp = privateCameraParameters.warmUp;
+	extCamParams->picturesPerEvent = privateCameraParameters.picturesPerEvent;
+	extCamParams->pictureInterval = privateCameraParameters.pictureInterval;
+	extCamParams->samplePictureTime.hours = privateCameraParameters.samplePictureTime.hours;
+	extCamParams->samplePictureTime.minutes = privateCameraParameters.samplePictureTime.minutes;
+	extCamParams->samplePicNumber = privateCameraParameters.samplePicNumber;
+}
 
-// void setCameraParameters(GPS_PARAMETER_TYPE extGpsParameters)
+void setCameraParameters(CAMERA_PARAMETER_TYPE extCamParams)
+{
+	privateCameraParameters.mode = extCamParams.mode;
+	privateCameraParameters.warmUp = extCamParams.warmUp;
+	privateCameraParameters.picturesPerEvent = extCamParams.picturesPerEvent;
+	privateCameraParameters.pictureInterval = extCamParams.pictureInterval;
+	privateCameraParameters.samplePictureTime.hours = extCamParams.samplePictureTime.hours;
+	privateCameraParameters.samplePictureTime.minutes = extCamParams.samplePictureTime.minutes;
+	privateCameraParameters.samplePicNumber = extCamParams.samplePicNumber;
+}
 
-//bool decodeCameraConfigs(uint8_t *mqttMsg)
-//{
-//
-//}
+/**
+ * @brief  Decodes camera parameters from server
+ * @note
+ * @param  uint8_t *mqttMsg
+ * 		   Represents message to be decoded
+ * @retval bool isError
+ * 		   If no error, will return false
+ */
+bool decodeCameraConfigs(uint8_t* mqttMsg)
+{
+	bool isError = false;
+	uint8_t version = 255;
+	uint8_t mode = 255;
+	uint16_t warmup = 0;
+	uint16_t picPerMotion = 0;
+	uint16_t picInterval = 0;
+	uint16_t samplePerDay = 0;
+	uint8_t sampleTimeH = 0;
+	uint8_t sampleTimeM = 0;
+	bool picPerMotionValid = false;
+	bool warmupValid = false;
+	bool samplePerDayValid = false;
+	bool picIntervalValid = false;
+	bool sampleTimeValid = false;
+	bool modeValid = false;
+	char localBuff[MEMORY_MAX] = " ";
+	char camTest [] = "\"camera\":{";
+	char modeTest [] = "\"mode\":";
+	char versionTest [] = "\"version\":";
+	char warmTest [] = "\"warm_up\":";
+	char picPerMotionTest [] = "\"pictures_per_motion\":";
+	char picIntervalTest [] = "\"picture_interval\":";
+	char samplePerDayTest [] = "\"sample_pictures_day\":";
+	char sampleTimeTest [] = "\"sample_picture_time\":";
+	char camErrStr[CONFIG_ERR_MSG_SIZE] = "";
+	int buffSize = 0;
 
-//
-//char* getCameraConfigStr(void)
-//{
-//	//CSC change hardcoded 500
-//	static char buffer[GPS_MSG_SIZE] = {0};
-//	static char failed[500] = "Failed to build GPS message.";
-//	bool valid = false;
-//
-//	int buffSize = snprintf(buffer, GPS_MSG_SIZE, "\"gps\":{\"version\":%u,\"mode\":%u,\"gps_acquisition_period\":%u,\"threshold_distance\":%u,\"alarm_window\":%u,\"alarm_sample_period\":%u,\"hysteresis\":%u}",
-//			GPS_CONFIG_VERSION, privateGpsParameters.mode, privateGpsParameters.gpsInterval, privateGpsParameters.geofenceDistance, privateGpsParameters.alarmTime, privateGpsParameters.alarmSamplePeriod, privateGpsParameters.movementHysteresis);
-//
-//	if(buffSize > 0 && buffSize < GPS_MSG_SIZE)
-//	{
-//		valid = true;
-//	}
-//
-//	if(valid)
-//	{
-//		return buffer;
-//	}
-//	else
-//	{
-//		return failed;
-//	}
-//}
+	// Transfer MQTT message to a local buffer to prevent tampering original mqtt message
+	Word_Transfer(localBuff, (char*)mqttMsg);
+
+	char *subStr = strstr(localBuff, camTest);
+	if(subStr && !isError)
+	{
+		buffSize += snprintf(camErrStr, CONFIG_ERR_MSG_SIZE, "\"camera\":[\"config_error\",");
+		char *verStr = strstr(subStr, versionTest);
+		if(verStr)
+		{
+			verStr += strlen(versionTest);
+			if(isdigit((unsigned char)verStr[0]))
+			{
+				version = atoi(verStr);
+				if(version == 0)
+				{
+					char *warmStr = strstr(subStr, warmTest);
+					if(warmStr)
+					{
+						warmStr += strlen(warmTest);
+						if(isdigit((unsigned char)warmStr[0]))
+						{
+							warmup = atoi(warmStr);
+							if(warmup >= 1 && warmup <= 255)
+							{
+								warmupValid = true;
+							}
+							else
+							{
+								PRINTF("Warm up out of range: %d\r\n", warmup);
+								buffSize += snprintf((camErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"warm_up_out_of_range\",");
+								isError = true;
+							}
+						}
+						else
+						{
+							PRINTF("Invalid data type for warm up\r\n");
+							isError = true;
+							buffSize += snprintf((camErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_warm_up_type\",");
+						}
+					}
+					else
+					{
+						PRINTF("Warm up parameter not found in camera configs\r\n");
+						isError = true;
+						buffSize += snprintf((camErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_warm_up\",");
+					}
+
+					char *modeStr = strstr(subStr, modeTest);
+					if(modeStr)
+					{
+						modeStr += strlen(modeTest);
+						if(isdigit((unsigned char)modeStr[0]))
+						{
+							mode = atoi(modeStr);
+							if(warmup >= 1 && warmup <= 255)
+							{
+								modeValid = true;
+							}
+							else
+							{
+								PRINTF("Mode out of range: %d\r\n", mode);
+								isError = true;
+								buffSize += snprintf((camErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"mode_out_of_range\",");
+							}
+						}
+						else
+						{
+							PRINTF("Invalid data type for mode\r\n");
+							isError = true;
+							buffSize += snprintf((camErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_mode_type\",");
+						}
+					}
+					else
+					{
+						PRINTF("Mode parameter not found in camera configs\r\n");
+						buffSize += snprintf((camErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_mode\",");
+						isError = true;
+					}
+
+					char *picPerMotionStr = strstr(subStr, picPerMotionTest);
+					if(picPerMotionStr)
+					{
+						picPerMotionStr += strlen(picPerMotionTest);
+						if(isdigit((unsigned char)warmStr[0]))
+						{
+							picPerMotion = atoi(picPerMotionStr);
+							if(picPerMotion >= 1 && picPerMotion <= 255)
+							{
+								picPerMotionValid = true;
+							}
+							else
+							{
+								PRINTF("Pictures per motion out of range: %d\r\n", picPerMotion);
+								isError = true;
+								buffSize += snprintf((camErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"picture_per_motion_out_of_range\",");
+							}
+						}
+						else
+						{
+							PRINTF("Invalid data type for pictures per motion\r\n");
+							isError = true;
+							buffSize += snprintf((camErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_picture_per_motion_type\",");
+						}
+					}
+					else
+					{
+						PRINTF("Pictures per motion parameter not found in camera configs\r\n");
+						buffSize += snprintf((camErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_picture_per_motion\",");
+						isError = true;
+					}
+
+					char *picIntervalStr = strstr(subStr, picIntervalTest);
+					if(picIntervalStr)
+					{
+						picIntervalStr += strlen(picIntervalTest);
+						if(isdigit((unsigned char)picIntervalStr[0]))
+						{
+							picInterval = atoi(picIntervalStr);
+							if(picInterval >= 1 && picInterval <= 255)
+							{
+								picIntervalValid = true;
+							}
+							else
+							{
+								PRINTF("Picture interval out of range: %d\r\n", picInterval);
+								buffSize += snprintf((camErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"picture_interval_out_of_range\",");
+							}
+						}
+						else
+						{
+							PRINTF("Invalid data type for picture interval\r\n");
+							buffSize += snprintf((camErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_picture_interval_type\",");
+						}
+					}
+					else
+					{
+						PRINTF("Picture interval parameter not found in camera configs\r\n");
+						isError = true;
+						buffSize += snprintf((camErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_picture_interval\",");
+					}
+
+					char *samplePerDayStr = strstr(subStr, samplePerDayTest);
+					if(samplePerDayStr)
+					{
+						samplePerDayStr += strlen(samplePerDayTest);
+						if(isdigit((unsigned char)samplePerDayStr[0]))
+						{
+							samplePerDay = atoi(samplePerDayStr);
+							if(samplePerDay >= 1 && samplePerDay <= 255)
+							{
+								samplePerDayValid = true;
+							}
+							else
+							{
+								PRINTF("Sample pictures per day out of range: %d\r\n", samplePerDay);
+								isError = true;
+								buffSize += snprintf((camErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"sample_picture_day_out_of_range\",");
+							}
+						}
+						else
+						{
+							PRINTF("Invalid data type for sample pictures per day\r\n");
+							isError = true;
+							buffSize += snprintf((camErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_sample_picture_day_type\",");
+						}
+					}
+					else
+					{
+						PRINTF("Sample pictures per day parameter not found in camera configs\r\n");
+						isError = true;
+						buffSize += snprintf((camErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_sample_picture_day\",");
+					}
+
+					char *sampleTimeStr = strstr(subStr, sampleTimeTest);
+					if(sampleTimeStr)
+					{
+						char *sampleTimeStrH = sampleTimeStr + (strlen(sampleTimeTest) + 1);
+						char *sampleTimeStrM = sampleTimeStr + (strlen(sampleTimeTest) + 4);
+						if(isdigit((unsigned char)sampleTimeStrH[0]) && isdigit((unsigned char)sampleTimeStrM[0]))
+						{
+							sampleTimeH = atoi(sampleTimeStrH);
+							sampleTimeM = atoi(sampleTimeStrM);
+							if(sampleTimeH >= 0 && sampleTimeH <= 23 && sampleTimeH >= 0 && sampleTimeH <= 59)
+							{
+								sampleTimeValid = true;
+							}
+							else
+							{
+								PRINTF("Sample time out out of range: %d hours, %d minutes\r\n", sampleTimeH, sampleTimeM);
+								isError = true;
+								buffSize += snprintf((camErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"sample_picture_time_out_of_range\",");
+							}
+						}
+						else
+						{
+							PRINTF("Invalid data type for sample time\r\n");
+							isError = true;
+							buffSize += snprintf((camErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_sample_picture_time_type\",");
+						}
+					}
+					else
+					{
+						PRINTF("Sample time parameter not found in camera configs\r\n");
+						isError = true;
+						buffSize += snprintf((camErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_sample_picture_time\",");
+					}
+				}
+				else
+				{
+					PRINTF("Wrong version. Expecting 0, received: %d", version);
+					isError = true;
+					buffSize += snprintf((camErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"version_mismatch\",");
+				}
+			}
+			else
+			{
+				PRINTF("Invalid type for version\r\n");
+				isError = true;
+				buffSize += snprintf((camErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_versioin_type\",");
+			}
+		}
+		else
+		{
+			PRINTF("Version not found in Camera downlink string\r\n");
+			isError = true;
+			buffSize += snprintf((camErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_version\",");
+		}
+	}
+	else
+	{
+		PRINTF("Camera configurations not found in configuration string\r\n");
+		isError = true;
+	}
+
+
+	if(!isError && picPerMotionValid && warmupValid && samplePerDayValid && picIntervalValid && sampleTimeValid && modeValid)
+	{
+		privateCameraParameters.mode = mode;
+		privateCameraParameters.pictureInterval = picInterval;
+		privateCameraParameters.picturesPerEvent = picPerMotion;
+		privateCameraParameters.warmUp = warmup;
+		privateCameraParameters.samplePicNumber = samplePerDay;
+		privateCameraParameters.samplePictureTime.hours = sampleTimeH;
+		privateCameraParameters.samplePictureTime.hours = sampleTimeM;
+	}
+	else
+	{
+		if(buffSize > 0 && buffSize < CONFIG_ERR_MSG_SIZE - 2 && camErrStr[0] != '\0')
+		{
+			if(camErrStr[buffSize - 1] == ',')
+			{
+				camErrStr[buffSize - 1] = ']';
+				addErrorString(camErrStr);
+			}
+		}
+	}
+
+	return isError;
+}
+
+/**
+ * @brief  Returns configuration string with camera configs for status message
+ * @note
+ * @param  void
+ * @retval returns config string or an error message if something goes wrong
+ */
+char* getCamConfigStr(void)
+{
+	static char buffer[CAM_MSG_SIZE] = {0};
+	bool valid = false;
+
+	int buffSize = snprintf(buffer, CAM_MSG_SIZE, "\"camera\":{\"version\":%u,\"mode\":%u,\"warm_up\":%u,\"pictures_per_motion\":%u,\"picture_interval\":%u,\"sample_picture_time\":\"%2u:%2u\",\"sample_pictures_day\":%u,\"exposure\":%u,\"iso\":%u,\"white_balance\":%u,\"white_balance_mode\":%u,\"ev\":%u,\"image_quality\":%u}",
+			CAM_CONFIG_VERSION, privateCameraParameters.mode, privateCameraParameters.warmUp, privateCameraParameters.picturesPerEvent, privateCameraParameters.pictureInterval, privateCameraParameters.samplePictureTime.hours, privateCameraParameters.samplePictureTime.minutes, privateCameraParameters.samplePicNumber,123,123,123,123,123,123);
+
+	if(buffSize > 0 && buffSize < CAM_MSG_SIZE)
+	{
+		valid = true;
+	}
+
+	if(valid)
+	{
+		return buffer;
+	}
+	else
+	{
+		return "Failed to build GPS message\r\n";
+	}
+}
 
 #endif  //CAMERA_C_

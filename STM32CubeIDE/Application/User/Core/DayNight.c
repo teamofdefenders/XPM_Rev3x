@@ -193,6 +193,8 @@ bool decodeDayNightConfigs(uint8_t *mqttMsg)
 	char verTest [] = "\"version\":";
 	char dayTest [] = "\"day_start_time\":";
 	char nightTest [] = "\"night_start_time\":";
+	char dayNightErrStr[CONFIG_ERR_MSG_SIZE] = "";
+	int buffSize = 0;
 
 	// Transfer MQTT message to a local buffer
 	Word_Transfer(Buff, (char *)mqttMsg);
@@ -201,6 +203,7 @@ bool decodeDayNightConfigs(uint8_t *mqttMsg)
 	char *substr = strstr(Buff, test);
 	if (substr)
 	{
+		buffSize += snprintf(dayNightErrStr, CONFIG_ERR_MSG_SIZE, "\"day_night\":[\"config_error\",");
 		// Find version
 		char *verStr = strstr(substr, verTest);
 		if (verStr)
@@ -213,12 +216,14 @@ bool decodeDayNightConfigs(uint8_t *mqttMsg)
 			else
 			{
 				isError = true;
+				buffSize += snprintf((dayNightErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_version_type\",");
 			}
+
 			if(version == 1)
 			{
 				// Find day start time (HH:MM)
 				char *dayStr = strstr(substr, dayTest);
-				if (dayStr && !isError)
+				if (dayStr)
 				{
 					dayStr += strlen(dayTest) + 1;
 					char *dayMin = dayStr + 3;
@@ -234,11 +239,13 @@ bool decodeDayNightConfigs(uint8_t *mqttMsg)
 						else
 						{
 							isError = true;
+							buffSize += snprintf((dayNightErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_day_minute_type\",");
 						}
 					}
 					else
 					{
 						isError = true;
+						buffSize += snprintf((dayNightErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_day_hour_type\",");
 					}
 				}
 
@@ -260,18 +267,25 @@ bool decodeDayNightConfigs(uint8_t *mqttMsg)
 						else
 						{
 							isError = true;
+							buffSize += snprintf((dayNightErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_night_minute_type\",");
 						}
 					}
 					else
 					{
 						isError = true;
+						buffSize += snprintf((dayNightErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_night_hour_type\",");
 					}
 				}
+			}
+			else
+			{
+				buffSize += snprintf((dayNightErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"version_mismatch\",");
+				isError = true;
 			}
 		}
 //		Refresh_Watchdog; // For debugging
 
-		if(validDay && validNight)
+		if(validDay && validNight && !isError)
 		{
 			if((dayH >= 0 && dayH <=  23) && (dayM >= 0 && dayM <= 59) && (nightH >= 0 && nightH <= 23) && (nightM >= 0 && nightM <= 59))
 			{
@@ -290,11 +304,26 @@ bool decodeDayNightConfigs(uint8_t *mqttMsg)
 			else
 			{
 				PRINTF("Values for hours and minutes in day night configs are out of range\r\n");
+				buffSize += snprintf((dayNightErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"day_night_hours_out_of_range\",");
+				isError = true;
 			}
 		}
 		else
 		{
 			PRINTF("Invalid parsing of day night configs, valid day is %d and valid night is %d\r\n", validDay, validNight);
+			buffSize += snprintf((dayNightErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_parsing\",");
+		}
+
+		if(isError)
+		{
+			if(buffSize > 0 && buffSize < CONFIG_ERR_MSG_SIZE - 2 && dayNightErrStr[0] != '\0')
+			{
+				if(dayNightErrStr[buffSize - 1] == ',')
+				{
+					dayNightErrStr[buffSize - 1] = ']';
+					addErrorString(dayNightErrStr);
+				}
+			}
 		}
 	} //End of big if subStr
 	return isError;
