@@ -284,6 +284,8 @@ void accelWriteRegisterRaw(ACCEL_I2C_Command accReg, uint8_t command)
  */
 void accelWhoAmI(void)
 {
+	HAL_Delay(1000);
+
 	uint8_t partNum = accelReadRegister(LIS2_ID);
 
 	PRINTF("Part number: %d\r\n", partNum);

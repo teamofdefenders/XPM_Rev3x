@@ -118,7 +118,7 @@ bool hbTimeChanged = false;
 STRING_CONTAINER configErrContainer;
 
 //enables/disables PIR mute period, tradeshow true is no mute period
-bool tradeshow = true;
+bool tradeshow = false;
 
 // Charger Cable state parameter
 bool  chargerCableState = false;
