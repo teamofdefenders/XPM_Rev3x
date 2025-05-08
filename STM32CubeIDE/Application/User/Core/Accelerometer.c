@@ -159,6 +159,7 @@ uint8_t accelReadRegister(ACCEL_I2C_Command readReg)
 			}
 			else
 			{
+				PRINTF("HAL Status: %d\r\n", ret);
 				return 0;
 			}
 			break;
@@ -284,8 +285,9 @@ void accelWriteRegisterRaw(ACCEL_I2C_Command accReg, uint8_t command)
  */
 void accelWhoAmI(void)
 {
-	HAL_Delay(1000);
 
+	accelWriteRegisterRaw(LIS2DUX12_ZERO_REG, WRITE_ZERO);
+	HAL_Delay(100);
 	uint8_t partNum = accelReadRegister(LIS2_ID);
 
 	PRINTF("Part number: %d\r\n", partNum);

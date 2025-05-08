@@ -128,6 +128,7 @@ typedef enum
 	//End LIS2DW12
 
 	//Begin LIS2DUX12
+	LIS2DUX12_ZERO_REG = 0x00,
 	LIS2DUX_CTRL_1 = 0x10,
 	LIS2DUX_CTRL_1_SET = 0x03, //Enables wake up events on all 3 axis
 	LIS2DUX_SOFT_RESET = 0x20, //Soft reset
