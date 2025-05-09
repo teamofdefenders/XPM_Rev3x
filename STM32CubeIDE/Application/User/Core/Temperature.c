@@ -513,7 +513,7 @@ void tempInit(void)
 
 	if (tempDevice.partNumber == HDC2080)
 	{
-	tempWriteRegisterRaw(HDC2080_MEASUREMENT_CONF, HDC2080_START_TEMP_HUMIDITY_MEASUREMENT);  //measurement mode
+		tempWriteRegisterRaw(HDC2080_MEASUREMENT_CONF, HDC2080_START_TEMP_HUMIDITY_MEASUREMENT);  //measurement mode
 	}
 
 	privateTempParameters.Temperature = tempReadRegister(HDC2080_TEMP_LOW);
@@ -536,18 +536,6 @@ void tempWhoAmI(void)
 	{
 		PRINTF("____NO TEMP SENSOR IDENTIFIED_____\r\n\r\n");
 	}
-//	else if(partNum == LIS2DUX)
-//	{
-//		PRINTF("LIS2DUX12 Identified\r\n");
-//		accelDevice.partNumber = LIS2DUX;
-//		accelDevice.address = LIS2_SLAVE_ADDREESS;
-//	}
-//	else
-//	{
-//		PRINTF("No accelerometer identified, setting address unknown\r\n");
-//		accelDevice.partNumber = ACC_UNKNOWN_DEVICE;
-//		accelDevice.address = UNKNOWN_SLAVE_ADDRESS;
-//	}
 }
 
 uint16_t tempReadRegister(TEM_I2C_Command readReg)
