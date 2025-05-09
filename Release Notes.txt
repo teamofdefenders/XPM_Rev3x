@@ -1,6 +1,5 @@
 XPM Firmware LowP Version release Notes
 
-
 V0.0.4
 	OTA Testing
 	Swap bank testing - Bank 1
@@ -311,3 +310,44 @@ V0.4.2 (04/02/2025)
 						- Removed a few of the unnecessary redirections
 		XPS.c 			- Added all necessary downlink parameters
 
+				
+V0.5.0 (05/01/2025)
+
+	Drivers files
+	    stm32u5xx_it.c - Added accelerometer pin as stop 3 wake up pin
+	Core files
+		main.c - Updated firmware version
+		       - Changed the External power pin from an interrupt to an imput to keep it from interrupting stop3 sleep
+		Accelerometer.h     - Added Support for LIS2DUX
+		Camera.h 	- Added default for parameters	
+		Functions.h - Added function prototypes to support configurations
+		            - Added definitions for configuration error container
+					- Added Main state machine definitions
+		PIR.h       - Reducde PIR configuration message max size from 2500 to 500 to save RAM memory
+			        - Added PIR filter parameters and decode configs functions
+		Skywire.h   - Added motion end support
+				    - Added functions prototypes
+		Temperature.h 	    - Revoved SI7021
+		                    - added support for HDC2080
+							- refactored Temperature module
+		
+	App Source files 
+		Accelerometer.c - Added Support for LIS2DUX
+						- Implemented accelerometer downlink decode error reporting
+		Camera.c	    - Implemented camera downlink decoding and error reporting
+		DayNight.c  	- Implemented downlink error reporting
+		Environment.c  	- New module for Temperautre and Humidity
+	    Functions.c		- Refined state machine for robustness and performance
+						- Added most downlink functionality
+						- Added camera power function
+						- Added battery charger functionality
+						- Added minValue4 function to calculate Stop3 timer
+						- Added downlink error string container functions
+						- Added function to send downlink configuration errors
+		GPS.c           - Implemented downlink error reporting
+		Interrupt.c     - Implemented new state maching 
+		PIR.c           - Implemented downlink error reporting
+		Skywire.c 		- Removed Temperature and humidity update functions
+						- Added parameter to getFirmwareDownlink function to change number of tries
+		Temperature.c 	- Refactored temperature module
+		XPS.c 			- Added camera downlink parameters
