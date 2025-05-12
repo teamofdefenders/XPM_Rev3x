@@ -1303,7 +1303,7 @@ bool decodeAccelConfigs(uint8_t *mqttMsg)
 			if(isdigit((unsigned char)verStr[0]))
 			{
 				version = atoi(verStr);
-				if(version == 1)
+				if(version == ACCEL_CONFIG_VERSION)
 				{
 					char *modeStr = strstr(substr, modeTest);
 					if(modeStr)

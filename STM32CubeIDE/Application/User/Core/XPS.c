@@ -190,6 +190,14 @@ void readParamDataFromFlash(MEM_PTR *Data_Ptr )
 
 	for(int chPnt = 0; chPnt < Size; chPnt++)
 	{
+		if(chPnt == 104)
+		{
+			PRINTF("LSB: %d\r\n", Memory[chPnt]);
+		}
+		else if(chPnt == 105)
+		{
+			PRINTF("MSB: %d\r\n", Memory[chPnt]);
+		}
 		paramPage1[chPnt] = Memory[chPnt];
 	}
 

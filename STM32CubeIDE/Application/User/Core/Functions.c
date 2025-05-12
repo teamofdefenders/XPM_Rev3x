@@ -260,7 +260,7 @@ void memory_Init (MEM_PTR *Data_Ptr )
 
 	ACCELERATION_PARAM_TYPE localAccCheck;
 	getAccelParameters(&localAccCheck);
-	if(localAccCheck.mutePeriod == 0)
+	if(localAccCheck.mutePeriod == 0 || localAccCheck.mutePeriod == 33795) //temporary patch fix until root cause discovered
 	{
 		accelDataInit(); //Initialize accelerometer data
 		accelParametersInit(); //Initialize accelerometer parameters
@@ -3164,7 +3164,6 @@ void selectDownlinkOperation(MEM_PTR *Data_Ptr, MACHINE_STATE_TYPE stateOfDevice
 			}
 
 			//Container functions do nothing if empty
-			printContainer(&configErrContainer);
 			sendConfigErrors(&memory, &configErrContainer);
 			freeContainer(&configErrContainer);
 			initContainer(&configErrContainer);
