@@ -43,16 +43,6 @@
  Note: Values are used for error codes,
  command types, and XPS state
  ******************************************************/
-typedef enum
-{
-	HDC2080_SLAVE_ADDRESS   = 0x80,
-	UNKNOWN_TEMP_SLAVE_ADDRESS = 0x00
-} TEMP_I2C_Address;
-
-typedef enum
-{
-	HDC2080 = 0x07D0
-} TEMP_DEVICE_TYPE;
 
 typedef enum
 {
@@ -122,6 +112,12 @@ typedef struct
 	TEM_I2C_Command TX [ I2C_CMD_SIZE ];
 	TEM_STATE STATE;					// Current state of TEM Module
 } TEM_STATUS_REG;
+
+typedef enum
+{
+	HDC2080_SLAVE_ADDRESS   = 0x80,
+	UNKNOWN_TEMP_SLAVE_ADDRESS = 0x00
+} TEMP_I2C_Address;
 
 /******************************************************
  Function Prototypes

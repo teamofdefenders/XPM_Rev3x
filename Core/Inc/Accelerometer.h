@@ -69,13 +69,6 @@ typedef enum
 
 typedef enum
 {
-	LIS2DW = 0x44,              // WhoamI 0x44
-	LIS2DUX = 0x47,             // WhoamI 0x47
-	ACC_UNKNOWN_DEVICE = 0x00
-} ACCEL_DEVICE_TYPE;
-
-typedef enum
-{
 	LIS2_ID = 0x0F,	         // WHO_AM_I from chip id
 	LIS2DW_CTRL_1_INST = 0x26,   // Control 1 instruction
 //	LIS2DW_CTRL_3 = 0x22,	     // Control : Self Test, Single Data Mode CTRL

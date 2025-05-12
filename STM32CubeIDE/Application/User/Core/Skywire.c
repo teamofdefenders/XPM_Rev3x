@@ -1416,6 +1416,8 @@ void HeartBeat(MEM_PTR *Data_Ptr)
 	//	for (int instance =1; instance < 11; instance++) //to loop heartbeats for testing purposes
 	//	{
 
+	TEMP_DEVICE_TYPE localTemp;
+	getTempDeviceType(&localTemp);
 	getTempSensorData(&tempParameters);
 
 
@@ -1430,8 +1432,10 @@ void HeartBeat(MEM_PTR *Data_Ptr)
 	Build_MSG(Data_Ptr, timeStamp);
 
 	Build_MSG(Data_Ptr, MQTT_DATA);
-
-	utoa( tempParameters.Device_ID, (char*) (&(Memory[ buf])), 10);
+	if(localTemp != TEMP_UNKNOWN_DEVICE)
+	{
+		utoa( tempParameters.Device_ID, (char*) (&(Memory[ buf])), 10);
+	}
 
 	while (Memory[ buf])
 		buf++;
@@ -1440,19 +1444,28 @@ void HeartBeat(MEM_PTR *Data_Ptr)
 	//Build_MSG(Data_Ptr, MQTT_HB_DATA_HDR);   //temporary while "Bat" is hardcoded as a string
 
 	Build_MSG(Data_Ptr, MQTT_APND);
-	utoa( tempParameters.Temperature, (char*) (&(Memory[ buf])), 10);
+	if(localTemp != TEMP_UNKNOWN_DEVICE)
+	{
+		utoa( tempParameters.Temperature, (char*) (&(Memory[ buf])), 10);
+	}
 
 	while (Memory[ buf])
 		buf++;
 
 	Build_MSG(Data_Ptr, MQTT_APND);
-	utoa( tempParameters.Device_ID, (char*) (&(Memory[ buf])), 10);
+	if(localTemp != TEMP_UNKNOWN_DEVICE)
+	{
+		utoa( tempParameters.Device_ID, (char*) (&(Memory[ buf])), 10);
+	}
 
 	while (Memory[ buf])
 		buf++;
 
 	Build_MSG(Data_Ptr, MQTT_APND);
-	utoa( tempParameters.Humidity, (char*) (&(Memory[ buf])), 10);
+	if(localTemp != TEMP_UNKNOWN_DEVICE)
+	{
+		utoa( tempParameters.Humidity, (char*) (&(Memory[ buf])), 10);
+	}
 
 	while (Memory[ buf])
 		buf++;

@@ -833,6 +833,19 @@ typedef struct
 	int16_t Accel_Y;				// Stores Y-Axis speed
 	int16_t Accel_Z;				// Stores Z-Axis speed
 } ACCEL_DATA_TYPE;
+
+typedef enum
+{
+	HDC2080 = 0x07D0,
+	TEMP_UNKNOWN_DEVICE = 0
+} TEMP_DEVICE_TYPE;
+
+typedef enum
+{
+	LIS2DW = 0x44,              // WhoamI 0x44
+	LIS2DUX = 0x47,             // WhoamI 0x47
+	ACC_UNKNOWN_DEVICE = 0x00
+} ACCEL_DEVICE_TYPE;
 //  ****************    End of Structure Definitions   ****************************
 
 
@@ -872,6 +885,7 @@ uint8_t getMode(HW_MODULE_TYPE hwSubModule);
 void environmentParametersInit(void);
 void getEnvironmentParameters(ENVIRONMENT_PARAM_TYPE *extParams);
 void getTempSensorData(TEMPERATURE_DATA_TYPE *extTempParams);
+void getTempDeviceType(TEMP_DEVICE_TYPE* extTemp);
 
 void setEnvironmentParameters(ENVIRONMENT_PARAM_TYPE extParams);
 bool decodeEnvironmentConfigs(uint8_t* mqttMsg);
@@ -1031,7 +1045,7 @@ void setAccelResolution(ACCEL_RESOLUTION setResolution);
 void setAccelFullScaleRange(ACCEL_FULL_SCALE setRange);
 uint16_t getAccelMutePeriod(void);
 char* getAccelConfigStr(void);
-char* getAccelErrStr(void);
+void getAccelDeviceType(ACCEL_DEVICE_TYPE * extAccel);
 //Test
 void testWakeUpInterruptOccur(void);
 void testMode(void);

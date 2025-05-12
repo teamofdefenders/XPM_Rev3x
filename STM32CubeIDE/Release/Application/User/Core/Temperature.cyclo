@@ -1,6 +1,7 @@
-../Application/User/Core/Temperature.c:553:10:tempReadRegister	3
-../Application/User/Core/Temperature.c:583:10:tempReadDeviceID	3
-../Application/User/Core/Temperature.c:525:6:tempWhoAmI	2
-../Application/User/Core/Temperature.c:613:6:tempWriteRegisterRaw	7
-../Application/User/Core/Temperature.c:505:6:tempInit	2
-../Application/User/Core/Temperature.c:659:6:getTempSensorData	1
+../Application/User/Core/Temperature.c:120:10:tempReadRegister	3
+../Application/User/Core/Temperature.c:156:10:tempReadDeviceID	3
+../Application/User/Core/Temperature.c:95:6:tempWhoAmI	2
+../Application/User/Core/Temperature.c:194:6:tempWriteRegisterRaw	7
+../Application/User/Core/Temperature.c:70:6:tempInit	2
+../Application/User/Core/Temperature.c:247:6:getTempSensorData	1
+../Application/User/Core/Temperature.c:260:6:getTempDeviceType	1

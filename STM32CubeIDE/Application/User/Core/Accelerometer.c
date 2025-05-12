@@ -52,7 +52,7 @@ ACCELERATION_PARAM_TYPE privateAccelParameters;
  * 		   Currently configuring for low power mode at 50 HZ, 14-bit resolution
  * 		   Wake-Up interrupts are enabled at medium to low threshold with no minimum duration for detection
  *
- * 		   If not a stop3 wake up, itt is imperative to disable interrupts before changing interrupt functionality due to the device
+ * 		   If not a stop3 wake up, it is imperative to disable interrupts before changing interrupt functionality due to the device
  * 		   possibly interrupting during i2c communication, causing a hanging program
  * @param  void
  * @retval void
