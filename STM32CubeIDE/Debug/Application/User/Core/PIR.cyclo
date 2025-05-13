@@ -6,6 +6,6 @@
 ../Application/User/Core/PIR.c:102:6:getFilterParameters	2
 ../Application/User/Core/PIR.c:131:6:PIR_ReCall	1
 ../Application/User/Core/PIR.c:168:6:decodePIRConfigs	20
-../Application/User/Core/PIR.c:317:6:decodeMotionFilter	35
-../Application/User/Core/PIR.c:592:7:getPirConfigStr	3
-../Application/User/Core/PIR.c:620:10:getPirMutePeriod	1
+../Application/User/Core/PIR.c:317:6:decodeMotionFilter	36
+../Application/User/Core/PIR.c:600:7:getPirConfigStr	3
+../Application/User/Core/PIR.c:628:10:getPirMutePeriod	1

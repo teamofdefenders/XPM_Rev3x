@@ -3557,21 +3557,21 @@ bool decodeHBConfigs(MEM_PTR *Data_Ptr, uint8_t *mqttMsg)
 							}
 							else
 							{
-								buffSize += snprintf((hbErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"mode_out_of_range\",");
+								buffSize += snprintf((hbErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"mode_out_of_range_[0-255]\",");
 								PRINTF("Heartbeat mode is out of range [0-255]: %d\r\n", mode);
 							}
 						}
 						else
 						{
 							isError = true;
-							buffSize += snprintf((hbErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_mode_type\",");
+							buffSize += snprintf((hbErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_mode_type_NAN\",");
 							//"Invalid data type for mode"
 						}
 					}
 					else
 					{
 						isError = true;
-						buffSize += snprintf((hbErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_mode\",");
+						buffSize += snprintf((hbErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_mode_string\",");
 						//"Mode not found in heartbeat message"
 					}
 
@@ -3593,21 +3593,21 @@ bool decodeHBConfigs(MEM_PTR *Data_Ptr, uint8_t *mqttMsg)
 							else
 							{
 								isError = true;
-								buffSize += snprintf((hbErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"interval_out_of_range\",");
+								buffSize += snprintf((hbErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"interval_out_of_range_[900-65535]\",");
 								PRINTF("Heartbeat interval is invalid: %d\r\n", interval);
 							}
 						}
 						else
 						{
 							isError = true;
-							buffSize += snprintf((hbErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_interval_type\",");
+							buffSize += snprintf((hbErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_interval_type_NAN\",");
 							//"Invalid data type for interval"
 						}
 					}
 					else
 					{
 						isError = true;
-						buffSize += snprintf((hbErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_interval\",");
+						buffSize += snprintf((hbErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_interval_string\",");
 						//"Interval not found in heartbeat message"
 					}
 				}
@@ -3621,14 +3621,14 @@ bool decodeHBConfigs(MEM_PTR *Data_Ptr, uint8_t *mqttMsg)
 			else
 			{
 				isError = true;
-				buffSize += snprintf((hbErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_version_type\",");
+				buffSize += snprintf((hbErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_version_type_NAN\",");
 				//"Invalid data type for version"
 			}
 		}
 		else
 		{
 			isError = true;
-			buffSize += snprintf((hbErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_version\",");
+			buffSize += snprintf((hbErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_version_string\",");
 			//"Version not found in heartbeat message"
 		}
 	}

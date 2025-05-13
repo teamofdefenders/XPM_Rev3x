@@ -216,7 +216,7 @@ bool decodeDayNightConfigs(uint8_t *mqttMsg)
 			else
 			{
 				isError = true;
-				buffSize += snprintf((dayNightErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_version_type\",");
+				buffSize += snprintf((dayNightErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_version_type_NAN\",");
 			}
 
 			if(version == 1)
@@ -239,13 +239,13 @@ bool decodeDayNightConfigs(uint8_t *mqttMsg)
 						else
 						{
 							isError = true;
-							buffSize += snprintf((dayNightErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_day_minute_type\",");
+							buffSize += snprintf((dayNightErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_day_minute_type_NAN\",");
 						}
 					}
 					else
 					{
 						isError = true;
-						buffSize += snprintf((dayNightErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_day_hour_type\",");
+						buffSize += snprintf((dayNightErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_day_hour_type_NAN\",");
 					}
 				}
 
@@ -267,13 +267,13 @@ bool decodeDayNightConfigs(uint8_t *mqttMsg)
 						else
 						{
 							isError = true;
-							buffSize += snprintf((dayNightErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_night_minute_type\",");
+							buffSize += snprintf((dayNightErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_night_minute_type_NAN\",");
 						}
 					}
 					else
 					{
 						isError = true;
-						buffSize += snprintf((dayNightErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_night_hour_type\",");
+						buffSize += snprintf((dayNightErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_night_hour_type_NAN\",");
 					}
 				}
 			}

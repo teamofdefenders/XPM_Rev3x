@@ -214,7 +214,7 @@ bool decodePIRConfigs(uint8_t *mqttMsg)
 							else
 							{
 								PRINTF("PIR mode is out of range [0-255]: %d\r\n", mode);
-								buffSize += snprintf((pirErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"mode_out_of_range\",");
+								buffSize += snprintf((pirErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"mode_out_of_range_[0-255]\",");
 								isError = true;
 							}
 						}
@@ -222,13 +222,13 @@ bool decodePIRConfigs(uint8_t *mqttMsg)
 						{
 							isError = true;
 							//"Invalid data type for mode"
-							buffSize += snprintf((pirErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_mode_type\",");
+							buffSize += snprintf((pirErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_mode_type_NAN\",");
 						}
 					}
 					else
 					{
 						isError = true;
-						buffSize += snprintf((pirErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_mode\",");
+						buffSize += snprintf((pirErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_mode_string\",");
 					}
 
 					char* muteStr = strstr(substr, muteTest);
@@ -246,20 +246,20 @@ bool decodePIRConfigs(uint8_t *mqttMsg)
 							else
 							{
 								PRINTF("PIR muting period is out of range [0-255]: %d\r\n", mutePeriod);
-								buffSize += snprintf((pirErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"muting_period_out_of_range\",");
+								buffSize += snprintf((pirErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"muting_period_out_of_range_[0-255]\",");
 								isError = true;
 							}
 						}
 						else
 						{
 							isError = true;
-							buffSize += snprintf((pirErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_muting_period_type\",");
+							buffSize += snprintf((pirErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_muting_period_type_NAN\",");
 						}
 					}
 					else
 					{
 						isError = true;
-						buffSize += snprintf((pirErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_muting_period\",");
+						buffSize += snprintf((pirErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_muting_period_string\",");
 					}
 				}
 				else
@@ -271,13 +271,13 @@ bool decodePIRConfigs(uint8_t *mqttMsg)
 			else
 			{
 				isError = true;
-				buffSize += snprintf((pirErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_version_type\",");
+				buffSize += snprintf((pirErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_version_type_NAN\",");
 			}
 		}
 		else
 		{
 			isError = true;
-			buffSize += snprintf((pirErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_version\",");
+			buffSize += snprintf((pirErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_version_string\",");
 		}
 	}
 	else
@@ -388,172 +388,180 @@ bool decodeMotionFilter(uint8_t *mqttMsg, FILTER_TYPE sunPeriod)
 			if(isdigit((unsigned char)verStr[0]))
 			{
 				version = atoi(verStr);
-			}
-			else
-			{
-				isError = true;
-				buffSize += snprintf((filterErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_version_type\",");
-			}
-		}
-		else
-		{
-			isError = true;
-		}
-
-		char* motionWindowStr = strstr(filterStr, motionWindowTest);
-		if(motionWindowStr)
-		{
-			motionWindowStr += strlen(motionWindowTest);
-			if(isdigit((unsigned char)motionWindowStr[0]))
-			{
-				Refresh_Watchdog;
-				motionWindow = atoi(motionWindowStr);
-				if(motionWindow >= 0 && motionWindow <= 65535)
+				if(version == 0)
 				{
-					decodedFilterParams.Motion_Confirm_Window = (uint16_t)motionWindow;
+					char* motionWindowStr = strstr(filterStr, motionWindowTest);
+					if(motionWindowStr)
+					{
+						motionWindowStr += strlen(motionWindowTest);
+						if(isdigit((unsigned char)motionWindowStr[0]))
+						{
+							Refresh_Watchdog;
+							motionWindow = atoi(motionWindowStr);
+							if(motionWindow >= 0 && motionWindow <= 65535)
+							{
+								decodedFilterParams.Motion_Confirm_Window = (uint16_t)motionWindow;
+							}
+							else
+							{
+								PRINTF("Motion window is out of range [0-65535]: %d\r\n", motionWindow);
+								buffSize += snprintf((filterErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"motion_confirm_window_out_of_range_[0-65535]\",");
+								isError = true;
+							}
+						}
+						else
+						{
+							isError = true;
+							buffSize += snprintf((filterErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_motion_confirm_window_type_NAN\",");
+						}
+					}
+					else
+					{
+						isError = true;
+						buffSize += snprintf((filterErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_motion_confirm_window_string\",");
+					}
+
+					char* motionThreshStr = strstr(filterStr, motionThreshTest);
+					if(motionThreshStr)
+					{
+						Refresh_Watchdog;
+						motionThreshStr += strlen(motionThreshTest);
+						if(isdigit((unsigned char)motionThreshStr[0]))
+						{
+							motionThreshold = atoi(motionThreshStr);
+							if(motionThreshold >= 0 && motionThreshold <= 100)
+							{
+								decodedFilterParams.Motion_Threshhold = (uint8_t)motionThreshold;
+							}
+							else
+							{
+								PRINTF("Motion threshold is out of range [0-100]: %d\r\n", motionThreshold);
+								isError = true;
+								buffSize += snprintf((filterErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"motion_threshold_out_of_range_[0-100]\",");
+							}
+						}
+						else
+						{
+							isError = true;
+							buffSize += snprintf((filterErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_motion_threshold_type_NAN\",");
+						}
+					}
+					else
+					{
+						isError = true;
+						buffSize += snprintf((filterErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_motion_threshold_string\",");
+					}
+
+					char* balckoutStr = strstr(filterStr, blackoutTest);
+					if(balckoutStr)
+					{
+						Refresh_Watchdog;
+						balckoutStr += strlen(blackoutTest);
+						if(isdigit((unsigned char)balckoutStr[0]))
+						{
+							blackout = atoi(balckoutStr);
+							// Change Range to uint16_t max
+							if(blackout >= 0 && blackout <= 65535)
+							{
+								decodedFilterParams.Motion_Blackout = (uint16_t)blackout;
+							}
+							else
+							{
+								PRINTF("Blackout is out of range [0-65535]: %d\r\n", blackout);
+								isError = true;
+								buffSize += snprintf((filterErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"motion_blackout_out_of_range_[0-65535]\",");
+							}
+						}
+						else
+						{
+							isError = true;
+							buffSize += snprintf((filterErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invald_motion_blackout_type_NAN\",");
+						}
+					}
+					else
+					{
+						isError = true;
+						buffSize += snprintf((filterErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_motion_blackout_string\",");
+					}
+
+					char* noMotionStr = strstr(filterStr, noMotionTest);
+					if(noMotionStr)
+					{
+						Refresh_Watchdog;
+						noMotionStr += strlen(noMotionTest);
+						if(isdigit((unsigned char)noMotionStr[0]))
+						{
+							noMotion = atoi(noMotionStr);
+							if(noMotion >= 0 && noMotion <= 255)
+							{
+								decodedFilterParams.No_Motion_Detection_Window = (uint8_t)noMotion;
+							}
+							else
+							{
+								PRINTF("No motion is out of range [0-255]: %d\r\n", noMotion);
+								isError = true;
+								buffSize += snprintf((filterErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"no_motion_window_out_of_range_[0-255]\",");
+							}
+						}
+						else
+						{
+							isError = true;
+							buffSize += snprintf((filterErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_no_motion_window_type_NAN\",");
+						}
+					}
+					else
+					{
+						isError = true;
+						buffSize += snprintf((filterErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_no_motion_window_string\",");
+					}
+
+					char* nearMotionStr = strstr(filterStr, nearMotionTest);
+					if(nearMotionStr)
+					{
+						Refresh_Watchdog;
+						nearMotionStr += strlen(nearMotionTest);
+						if(isdigit((unsigned char)nearMotionStr[0]))
+						{
+							nearMotion = atoi(nearMotionStr);
+							if(nearMotion >= 0 && nearMotion <= 100)
+							{
+								decodedFilterParams.Near_Motion_Threshhold = (uint8_t)nearMotion;
+							}
+							else
+							{
+								PRINTF("Near motion is out of range [0-100]: %d\r\n", nearMotion);
+								isError = true;
+								buffSize += snprintf((filterErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"near_motion_out_of_range_[0-100]\",");
+							}
+						}
+						else
+						{
+							isError = true;
+							buffSize += snprintf((filterErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_near_motion_type_NAN\",");
+						}
+					}
+					else
+					{
+						isError = true;
+						buffSize += snprintf((filterErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_near_motion_string\",");
+					}
 				}
 				else
 				{
-					PRINTF("Motion window is out of range [0-65535]: %d\r\n", motionWindow);
-					buffSize += snprintf((filterErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"motion_confirm_window_out_of_range\",");
 					isError = true;
+					buffSize += snprintf((filterErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"version_mismatch\",");
 				}
 			}
 			else
 			{
 				isError = true;
-				buffSize += snprintf((filterErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_motion_confirm_window_type\",");
+				buffSize += snprintf((filterErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_version_type_NAN\",");
 			}
 		}
 		else
 		{
 			isError = true;
-			buffSize += snprintf((filterErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_motion_confirm_window\",");
-		}
-
-		char* motionThreshStr = strstr(filterStr, motionThreshTest);
-		if(motionThreshStr)
-		{
-			Refresh_Watchdog;
-			motionThreshStr += strlen(motionThreshTest);
-			if(isdigit((unsigned char)motionThreshStr[0]))
-			{
-				motionThreshold = atoi(motionThreshStr);
-				if(motionThreshold >= 0 && motionThreshold <= 100)
-				{
-					decodedFilterParams.Motion_Threshhold = (uint8_t)motionThreshold;
-				}
-				else
-				{
-					PRINTF("Motion threshold is out of range [0-100]: %d\r\n", motionThreshold);
-					isError = true;
-					buffSize += snprintf((filterErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"motion_threshold_out_of_range\",");
-				}
-			}
-			else
-			{
-				isError = true;
-				buffSize += snprintf((filterErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_motion_threshold_type\",");
-			}
-		}
-		else
-		{
-			isError = true;
-			buffSize += snprintf((filterErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_motion_threshold\",");
-		}
-
-		char* balckoutStr = strstr(filterStr, blackoutTest);
-		if(balckoutStr)
-		{
-			Refresh_Watchdog;
-			balckoutStr += strlen(blackoutTest);
-			if(isdigit((unsigned char)balckoutStr[0]))
-			{
-				blackout = atoi(balckoutStr);
-				// Change Range to uint16_t max
-				if(blackout >= 0 && blackout <= 65535)
-				{
-					decodedFilterParams.Motion_Blackout = (uint16_t)blackout;
-				}
-				else
-				{
-					PRINTF("Blackout is out of range [0-65535]: %d\r\n", blackout);
-					isError = true;
-					buffSize += snprintf((filterErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"motion_blackout_out_of_range\",");
-				}
-			}
-			else
-			{
-				isError = true;
-				buffSize += snprintf((filterErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invald_motion_blackout_type\",");
-			}
-		}
-		else
-		{
-			isError = true;
-			buffSize += snprintf((filterErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_motion_blackout\",");
-		}
-
-		char* noMotionStr = strstr(filterStr, noMotionTest);
-		if(noMotionStr)
-		{
-			Refresh_Watchdog;
-			noMotionStr += strlen(noMotionTest);
-			if(isdigit((unsigned char)noMotionStr[0]))
-			{
-				noMotion = atoi(noMotionStr);
-				if(noMotion >= 0 && noMotion <= 255)
-				{
-					decodedFilterParams.No_Motion_Detection_Window = (uint8_t)noMotion;
-				}
-				else
-				{
-					PRINTF("No motion is out of range [0-255]: %d\r\n", noMotion);
-					isError = true;
-					buffSize += snprintf((filterErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"no_motion_window_out_of_range\",");
-				}
-			}
-			else
-			{
-				isError = true;
-				buffSize += snprintf((filterErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_no_motion_window_type\",");
-			}
-		}
-		else
-		{
-			isError = true;
-			buffSize += snprintf((filterErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_no_motion_window\",");
-		}
-
-		char* nearMotionStr = strstr(filterStr, nearMotionTest);
-		if(nearMotionStr)
-		{
-			Refresh_Watchdog;
-			nearMotionStr += strlen(nearMotionTest);
-			if(isdigit((unsigned char)nearMotionStr[0]))
-			{
-				nearMotion = atoi(nearMotionStr);
-				if(nearMotion >= 0 && nearMotion <= 100)
-				{
-					decodedFilterParams.Near_Motion_Threshhold = (uint8_t)nearMotion;
-				}
-				else
-				{
-					PRINTF("Near motion is out of range [0-100]: %d\r\n", nearMotion);
-					isError = true;
-					buffSize += snprintf((filterErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"near_motion_out_of_range\",");
-				}
-			}
-			else
-			{
-				isError = true;
-				buffSize += snprintf((filterErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_near_motion_type\",");
-			}
-		}
-		else
-		{
-			isError = true;
-			buffSize += snprintf((filterErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_near_motion\",");
+			buffSize += snprintf((filterErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_version_string\",");
 		}
 	}
 	else

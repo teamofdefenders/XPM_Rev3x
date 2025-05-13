@@ -9,5 +9,5 @@
 ../Application/User/Core/Camera.c:217:6:cameraParametersInit	1
 ../Application/User/Core/Camera.c:228:6:getCameraParameters	1
 ../Application/User/Core/Camera.c:239:6:setCameraParameters	1
-../Application/User/Core/Camera.c:258:6:decodeCameraConfigs	42
+../Application/User/Core/Camera.c:258:6:decodeCameraConfigs	38
 ../Application/User/Core/Camera.c:554:7:getCamConfigStr	4

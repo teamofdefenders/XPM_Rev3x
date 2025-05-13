@@ -1321,21 +1321,21 @@ bool decodeAccelConfigs(uint8_t *mqttMsg)
 							{
 								PRINTF("Accelerometer mode is out of range [0-255]: %d\r\n", mode);
 								isError = true;
-								buffSize += snprintf((accelErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"mode_out_of_range\",");
+								buffSize += snprintf((accelErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"mode_out_of_range_[0-255]\",");
 							}
 						}
 						else
 						{
 							isError = true;
 							PRINTF("Invalid data type for accelerometer mode\r\n");
-							buffSize += snprintf((accelErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_mode_type\",");
+							buffSize += snprintf((accelErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_mode_type_NAN\",");
 						}
 					}
 					else
 					{
 						isError = true;
 						PRINTF("Mode not found in accel parameters string\r\n");
-						buffSize += snprintf((accelErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_mode\",");
+						buffSize += snprintf((accelErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_mode_string\",");
 					}
 
 					char *rangeStr = strstr(substr, rangeTest);
@@ -1353,21 +1353,21 @@ bool decodeAccelConfigs(uint8_t *mqttMsg)
 							{
 								PRINTF("Accelerometer range is out of range [0-255]: %d\r\n", range);
 								isError = true;
-								buffSize += snprintf((accelErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"range_out_of_range\",");
+								buffSize += snprintf((accelErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"range_out_of_range_[0-255]\",");
 							}
 						}
 						else
 						{
 							isError = true;
 							PRINTF("Invalid data type for accelerometer range");
-							buffSize += snprintf((accelErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_range_type\",");
+							buffSize += snprintf((accelErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_range_type_NAN\",");
 						}
 					}
 					else
 					{
 						isError = true;
 						PRINTF("Range not found in accel parameters string\r\n");
-						buffSize += snprintf((accelErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_range\",");
+						buffSize += snprintf((accelErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_range_string\",");
 					}
 					char *thresholdStr = strstr(substr, thresholdTest);
 					if(thresholdStr)
@@ -1384,21 +1384,21 @@ bool decodeAccelConfigs(uint8_t *mqttMsg)
 							{
 								PRINTF("Accelerometer threshold is out of range [0.0-65535.0]: %f\r\n", threshold);
 								isError = true;
-								buffSize += snprintf((accelErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"threshold_out_of_range\",");
+								buffSize += snprintf((accelErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"threshold_out_of_range[0-65535]\",");
 							}
 						}
 						else
 						{
 							isError = true;
 							PRINTF("Invalid data type for accelerometer threshold\r\n");
-							buffSize += snprintf((accelErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_threshold_type\",");
+							buffSize += snprintf((accelErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_threshold_type_NAN\",");
 						}
 					}
 					else
 					{
 						isError = true;
 						PRINTF("Threshold not found in accel parameters string\r\n");
-						buffSize += snprintf((accelErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_threshold\",");
+						buffSize += snprintf((accelErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_threshold_string\",");
 					}
 
 					char *hysteresisStr = strstr(substr, hysteresisTest);
@@ -1416,21 +1416,21 @@ bool decodeAccelConfigs(uint8_t *mqttMsg)
 							{
 								PRINTF("Accelerometer hysteresis is out of range [0.0-65535.0]: %f\r\n", hysteresis);
 								isError = true;
-								buffSize += snprintf((accelErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"hysteresis_out_of_range\",");
+								buffSize += snprintf((accelErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"hysteresis_out_of_range[0-65535]\",");
 							}
 						}
 						else
 						{
 							isError = true;
 							PRINTF("Invalid data type for accelerometer hysteresis\r\n");
-							buffSize += snprintf((accelErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_hysteresis_type\",");
+							buffSize += snprintf((accelErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_hysteresis_type_NAN\",");
 						}
 					}
 					else
 					{
 						isError = true;
 						PRINTF("Hysteresis not found in accel parameters string\r\n");
-						buffSize += snprintf((accelErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_hysteresis\",");
+						buffSize += snprintf((accelErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_hysteresis_string\",");
 					}
 
 					char *durationStr = strstr(substr, durationTest);
@@ -1448,21 +1448,21 @@ bool decodeAccelConfigs(uint8_t *mqttMsg)
 							{
 								PRINTF("Accelerometer duration is out of range [0-65535]: %d\r\n", duration);
 								isError = true;
-								buffSize += snprintf((accelErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"duration_out_of_range\",");
+								buffSize += snprintf((accelErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"duration_out_of_range_[0-65535]\",");
 							}
 						}
 						else
 						{
 							isError = true;
 							PRINTF("Invalid data type for accelerometer duration\r\n");
-							buffSize += snprintf((accelErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_duration_type\",");
+							buffSize += snprintf((accelErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_duration_type_NAN\",");
 						}
 					}
 					else
 					{
 						isError = true;
 						PRINTF("Duration not found in accel parameters string\r\n");
-						buffSize += snprintf((accelErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_duration\",");
+						buffSize += snprintf((accelErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_duration_string\",");
 					}
 
 					char* muteStr = strstr(substr, mutingTest);
@@ -1480,21 +1480,21 @@ bool decodeAccelConfigs(uint8_t *mqttMsg)
 							{
 								PRINTF("Accelerometer mute period is out of range [0-65535]: %d\r\n", mute);
 								isError = true;
-								buffSize += snprintf((accelErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"mute_period_out_of_range\",");
+								buffSize += snprintf((accelErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"mute_period_out_of_range_[0-65535]\",");
 							}
 						}
 						else
 						{
 							isError = true;
 							PRINTF("Invalid data type for accelerometer mute period\r\n");
-							buffSize += snprintf((accelErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_mute_period_type\",");
+							buffSize += snprintf((accelErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_mute_period_type_NAN\",");
 						}
 					}
 					else
 					{
 						isError = true;
 						PRINTF("Mute period not found in accel parameters string\r\n");
-						buffSize += snprintf((accelErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_mute_period\",");
+						buffSize += snprintf((accelErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_mute_period_string\",");
 					}
 				}
 				else
@@ -1508,14 +1508,14 @@ bool decodeAccelConfigs(uint8_t *mqttMsg)
 			{
 				isError = true;
 				PRINTF("Invalid data type for accel version\r\n");
-				buffSize += snprintf((accelErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"version_mismatch\",");
+				buffSize += snprintf((accelErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_version_type_NAN\",");
 			}
 		}
 		else
 		{
 			isError = true;
 			PRINTF("No version found\r\n");
-			buffSize += snprintf((accelErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"version_missing\",");
+			buffSize += snprintf((accelErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_version_string\",");
 		}
 	}
 	else

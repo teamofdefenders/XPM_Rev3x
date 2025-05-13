@@ -314,7 +314,7 @@ bool decodeCameraConfigs(uint8_t* mqttMsg)
 							else
 							{
 								PRINTF("Warm up out of range: %d\r\n", warmup);
-								buffSize += snprintf((camErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"warm_up_out_of_range\",");
+								buffSize += snprintf((camErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"warm_up_out_of_range_[1-255]\",");
 								isError = true;
 							}
 						}
@@ -322,14 +322,14 @@ bool decodeCameraConfigs(uint8_t* mqttMsg)
 						{
 							PRINTF("Invalid data type for warm up\r\n");
 							isError = true;
-							buffSize += snprintf((camErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_warm_up_type\",");
+							buffSize += snprintf((camErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_warm_up_type_NAN\",");
 						}
 					}
 					else
 					{
 						PRINTF("Warm up parameter not found in camera configs\r\n");
 						isError = true;
-						buffSize += snprintf((camErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_warm_up\",");
+						buffSize += snprintf((camErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_warm_up_string\",");
 					}
 
 					char *modeStr = strstr(subStr, modeTest);
@@ -339,7 +339,7 @@ bool decodeCameraConfigs(uint8_t* mqttMsg)
 						if(isdigit((unsigned char)modeStr[0]))
 						{
 							mode = atoi(modeStr);
-							if(warmup >= 1 && warmup <= 255)
+							if(warmup >= 0 && warmup <= 255)
 							{
 								modeValid = true;
 							}
@@ -347,20 +347,20 @@ bool decodeCameraConfigs(uint8_t* mqttMsg)
 							{
 								PRINTF("Mode out of range: %d\r\n", mode);
 								isError = true;
-								buffSize += snprintf((camErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"mode_out_of_range\",");
+								buffSize += snprintf((camErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"mode_out_of_range_[0-255]\",");
 							}
 						}
 						else
 						{
 							PRINTF("Invalid data type for mode\r\n");
 							isError = true;
-							buffSize += snprintf((camErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_mode_type\",");
+							buffSize += snprintf((camErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_mode_type_NAN\",");
 						}
 					}
 					else
 					{
 						PRINTF("Mode parameter not found in camera configs\r\n");
-						buffSize += snprintf((camErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_mode\",");
+						buffSize += snprintf((camErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_mode_string\",");
 						isError = true;
 					}
 
@@ -371,7 +371,7 @@ bool decodeCameraConfigs(uint8_t* mqttMsg)
 						if(isdigit((unsigned char)warmStr[0]))
 						{
 							picPerMotion = atoi(picPerMotionStr);
-							if(picPerMotion >= 1 && picPerMotion <= 255)
+							if(picPerMotion >= 0 && picPerMotion <= 255)
 							{
 								picPerMotionValid = true;
 							}
@@ -379,20 +379,20 @@ bool decodeCameraConfigs(uint8_t* mqttMsg)
 							{
 								PRINTF("Pictures per motion out of range: %d\r\n", picPerMotion);
 								isError = true;
-								buffSize += snprintf((camErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"picture_per_motion_out_of_range\",");
+								buffSize += snprintf((camErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"picture_per_motion_out_of_range_[0-255]\",");
 							}
 						}
 						else
 						{
 							PRINTF("Invalid data type for pictures per motion\r\n");
 							isError = true;
-							buffSize += snprintf((camErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_picture_per_motion_type\",");
+							buffSize += snprintf((camErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_picture_per_motion_type_NAN\",");
 						}
 					}
 					else
 					{
 						PRINTF("Pictures per motion parameter not found in camera configs\r\n");
-						buffSize += snprintf((camErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_picture_per_motion\",");
+						buffSize += snprintf((camErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_picture_per_motion_string\",");
 						isError = true;
 					}
 
@@ -403,27 +403,27 @@ bool decodeCameraConfigs(uint8_t* mqttMsg)
 						if(isdigit((unsigned char)picIntervalStr[0]))
 						{
 							picInterval = atoi(picIntervalStr);
-							if(picInterval >= 1 && picInterval <= 255)
+							if(picInterval >= 0 && picInterval <= 255)
 							{
 								picIntervalValid = true;
 							}
 							else
 							{
 								PRINTF("Picture interval out of range: %d\r\n", picInterval);
-								buffSize += snprintf((camErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"picture_interval_out_of_range\",");
+								buffSize += snprintf((camErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"picture_interval_out_of_range_[0-255]\",");
 							}
 						}
 						else
 						{
 							PRINTF("Invalid data type for picture interval\r\n");
-							buffSize += snprintf((camErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_picture_interval_type\",");
+							buffSize += snprintf((camErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_picture_interval_type_NAN\",");
 						}
 					}
 					else
 					{
 						PRINTF("Picture interval parameter not found in camera configs\r\n");
 						isError = true;
-						buffSize += snprintf((camErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_picture_interval\",");
+						buffSize += snprintf((camErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_picture_interval_string\",");
 					}
 
 					char *samplePerDayStr = strstr(subStr, samplePerDayTest);
@@ -433,7 +433,7 @@ bool decodeCameraConfigs(uint8_t* mqttMsg)
 						if(isdigit((unsigned char)samplePerDayStr[0]))
 						{
 							samplePerDay = atoi(samplePerDayStr);
-							if(samplePerDay >= 1 && samplePerDay <= 255)
+							if(samplePerDay >= 0 && samplePerDay <= 255)
 							{
 								samplePerDayValid = true;
 							}
@@ -441,21 +441,21 @@ bool decodeCameraConfigs(uint8_t* mqttMsg)
 							{
 								PRINTF("Sample pictures per day out of range: %d\r\n", samplePerDay);
 								isError = true;
-								buffSize += snprintf((camErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"sample_picture_day_out_of_range\",");
+								buffSize += snprintf((camErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"sample_picture_day_out_of_range_[0-255]\",");
 							}
 						}
 						else
 						{
 							PRINTF("Invalid data type for sample pictures per day\r\n");
 							isError = true;
-							buffSize += snprintf((camErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_sample_picture_day_type\",");
+							buffSize += snprintf((camErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_sample_picture_day_type_NAN\",");
 						}
 					}
 					else
 					{
 						PRINTF("Sample pictures per day parameter not found in camera configs\r\n");
 						isError = true;
-						buffSize += snprintf((camErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_sample_picture_day\",");
+						buffSize += snprintf((camErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_sample_picture_day_string\",");
 					}
 
 					char *sampleTimeStr = strstr(subStr, sampleTimeTest);
@@ -482,14 +482,14 @@ bool decodeCameraConfigs(uint8_t* mqttMsg)
 						{
 							PRINTF("Invalid data type for sample time\r\n");
 							isError = true;
-							buffSize += snprintf((camErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_sample_picture_time_type\",");
+							buffSize += snprintf((camErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_sample_picture_time_type_NAN\",");
 						}
 					}
 					else
 					{
 						PRINTF("Sample time parameter not found in camera configs\r\n");
 						isError = true;
-						buffSize += snprintf((camErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_sample_picture_time\",");
+						buffSize += snprintf((camErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_sample_picture_time_string\",");
 					}
 				}
 				else
