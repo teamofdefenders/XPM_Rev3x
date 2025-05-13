@@ -260,7 +260,7 @@ void memory_Init (MEM_PTR *Data_Ptr )
 
 	ACCELERATION_PARAM_TYPE localAccCheck;
 	getAccelParameters(&localAccCheck);
-	if(localAccCheck.mutePeriod == 0 || localAccCheck.mutePeriod == 33795) //temporary patch fix until root cause discovered
+	if(localAccCheck.mutePeriod == 0) //temporary patch fix until root cause discovered
 	{
 		accelDataInit(); //Initialize accelerometer data
 		accelParametersInit(); //Initialize accelerometer parameters
