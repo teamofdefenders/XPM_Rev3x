@@ -3164,7 +3164,7 @@ void selectDownlinkOperation(MEM_PTR *Data_Ptr, MACHINE_STATE_TYPE stateOfDevice
 			}
 
 			//Container functions do nothing if empty
-			sendConfigErrors(&memory, &configErrContainer);
+			sendConfigErrors(Data_Ptr, &configErrContainer);
 			freeContainer(&configErrContainer);
 			initContainer(&configErrContainer);
 

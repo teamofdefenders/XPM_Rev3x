@@ -1567,8 +1567,8 @@ char* getAccelConfigStr(void)
 
 	float thresh = (float)privateAccelParameters.threshold / 1000.0;
 	float hyster = (float) privateAccelParameters.hysteresis / 1000.0;
-	buffSize = snprintf(accelBuff, ACCEL_MSG_SIZE, "\"accelerometer\":{\"version\":%u,\"mode\":%u,\"range\":%u,\"threshold\":%g,\"hysteresis\":%g,\"duration\":%u}",
-			ACCEL_CONFIG_VERSION, privateAccelParameters.mode, privateAccelParameters.range, thresh, hyster, privateAccelParameters.duration);
+	buffSize = snprintf(accelBuff, ACCEL_MSG_SIZE, "\"accelerometer\":{\"version\":%u,\"mode\":%u,\"range\":%u,\"threshold\":%g,\"hysteresis\":%g,\"duration\":%u,\"muting_period\":%u}",
+			ACCEL_CONFIG_VERSION, privateAccelParameters.mode, privateAccelParameters.range, thresh, hyster, privateAccelParameters.duration, privateAccelParameters.mutePeriod);
 
 	if(buffSize > 0 && buffSize < ACCEL_MSG_SIZE)
 	{
