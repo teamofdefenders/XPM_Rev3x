@@ -3761,6 +3761,7 @@ void otaCheckMissingPages( OTA_FILE_TYPE *OTAData )
 		}
 	}
 
+
 	// Remove trailing comma and replace with closing bracket
 	int len = strlen(OTAData->missingPagesString);
 	if (len > 1 && OTAData->missingPagesString[len - 1] == ',')
@@ -4254,7 +4255,7 @@ void sendDeviceConfig( MEM_PTR *Data_Ptr, STATUS_UPLINK_TYPE uplnkType )
 	{
 		//CSC snprintf for devID,type,timestamp,response type,firmware,heartbeat, and day night
 		buffSize = snprintf(configBuff, MEMORY_MAX, "\1{\"dev_id\":\"%lu\",\"type\":\"%s\",\"timestamp\":\"%s\",\"response_type\":\"%s\",\"firmware_version\":\"%s\",\r\n\"heartbeat\":{\"version\":%u,\"mode\":%u,\"hb_interval\":%u},\r\n%s",
-				UNIQUE_Device_ID, "device_status", timebuff, responseTypeBuff, "XPM_Rev3_V1.0.0", 0, Data_Ptr->heartBeatData.mode, Data_Ptr->heartBeatData.hbInterval, dayNightConfigStr());
+				UNIQUE_Device_ID, "device_status", timebuff, responseTypeBuff, "XPM_Rev3_V1.0.1", 0, Data_Ptr->heartBeatData.mode, Data_Ptr->heartBeatData.hbInterval, dayNightConfigStr());
 
 		//CSC snprintf for pir, motion filter day, and motion filter night
 		buffSize += snprintf((configBuff + buffSize), (MEMORY_MAX - buffSize), ",\r\n%s", getPirConfigStr());

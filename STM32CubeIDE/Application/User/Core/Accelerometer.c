@@ -1284,7 +1284,7 @@ bool decodeAccelConfigs(uint8_t *mqttMsg)
 	uint32_t duration = 0;
 	bool durationValid = false;
 	uint8_t version;
-	uint8_t mute = 0;
+	uint32_t mute = 0;
 	bool muteValid = false;
 
 	char accelErrStr[CONFIG_ERR_MSG_SIZE] = "";

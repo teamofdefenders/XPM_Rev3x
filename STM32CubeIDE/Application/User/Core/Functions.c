@@ -1427,7 +1427,8 @@ void OTAProcess (MEM_PTR *Data_Ptr, OTA_FILE_TYPE *OTAData )
 		}
 		if (OTAData->numberOfMissingPages > 0)
 		{
-			FW_CRC_Ack(Data_Ptr, true, OTAData);  //should be false, true for testing
+			FW_CRC_Ack(Data_Ptr, false, OTAData);
+			errorMode = 4;
 		}
 		else
 		{
@@ -1470,32 +1471,42 @@ void OTAProcess (MEM_PTR *Data_Ptr, OTA_FILE_TYPE *OTAData )
 
 		//check crc, add backoffice CRC to structure
 		bool crcIsGood = fwCRCFileCheck(calCRC, OTAData);
-		FW_CRC_Ack(Data_Ptr, crcIsGood, OTAData);
 
-		// Save all data
-		// Write all data to XPS
-		// Moved here to make sure it happens
-		saveParamDataToFlash(Data_Ptr);
-		// Pseudo code
-
-		// if "OK" firmware downlink
-		// Save current Device state to XPS
-		// TODO Add Bank number to XPS storage
-		// call reflash
-		// call Boot_Change
-
-		PRINTF("Reflashing\r\n");
 
 		BANK_TYPE currentBank =  getSwapBank();
 		Reflash(Data_Ptr, currentBank);
 
-		PRINTF("Swapping Banks\r\n");
-		// Make sure everything wraps up
-		HAL_Delay ( 1000 );
+		if(errorMode == 0 && OTAData->numberOfMissingPages == 0 && crcIsGood)
+		{
+			FW_CRC_Ack(Data_Ptr, crcIsGood, OTAData);
 
-		Boot_Change(currentBank);
-		// system will reboot in the Boot_Change function
-		NVIC_SystemReset();
+			// Save all data
+			// Write all data to XPS
+			// Moved here to make sure it happens
+			saveParamDataToFlash(Data_Ptr);
+			// Pseudo code
+
+			// if "OK" firmware downlink
+			// Save current Device state to XPS
+			// TODO Add Bank number to XPS storage
+			// call reflash
+			// call Boot_Change
+
+			PRINTF("Reflashing\r\n");
+
+			PRINTF("Swapping Banks\r\n");
+			// Make sure everything wraps up
+			HAL_Delay ( 1000 );
+
+			Boot_Change(currentBank);
+			// system will reboot in the Boot_Change function
+			NVIC_SystemReset();
+		}
+		else
+		{
+			PRINTF("An error was detected. Aborting swap bank.\r\n");
+		}
+
 	}
 }
 
