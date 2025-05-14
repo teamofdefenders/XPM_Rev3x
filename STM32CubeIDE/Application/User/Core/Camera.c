@@ -570,7 +570,7 @@ char* getCamConfigStr(void)
 	}
 	else
 	{
-		return "Failed to build GPS message\r\n";
+		return "Failed to build Camera message\r\n";
 	}
 }
 
