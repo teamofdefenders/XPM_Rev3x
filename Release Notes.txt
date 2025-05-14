@@ -367,6 +367,10 @@ XPM_Rev3_V1.0.0 (5/14/2025)
 		App Source files
 			Accelerometer.c - Modified getAccelConfigStr to include reporting of the mutePeriod parameter
 							- Added ghost write in accelWhoAmI to wake LIS2DUX12 from deep power down
-			Functions.c     - Added key parameter check in memory_Init for environmental parameters.
+			Functions.c     - Added key parameter check in memory_Init for environmental parameters
 			Skywire.c       - Added a part number check in HeartBeat to send empty commas for unknown devices
 			XPS.c           - Fixed incorrect storing of accelerometer mute period parameter
+			
+XPM_Rev3_V1.0.1 (5/14/2025)
+		Accelerometer.c - Changed mutePeriod parameter from uint8_t to uint_32t in decodeAccelConfigs()
+		Functions.c     - Wrapped swap bank functionality in if block to prevent swapping if pages are missing
