@@ -32,7 +32,7 @@
 #define DEF_MUTE_ACCEL 900
 #define ACCEL_TIMER 0xFF
 #define ACCEL_MSG_SIZE 500
-#define ACCEL_CONFIG_VERSION 1
+#define ACCEL_CONFIG_VERSION 2
 
 #define ACCEL_SENSOR_FAIL 0x01 //WHY!! KCS USE maybe UNKNOWN_ADDRESS
 #define Default_X_Axis 0xFF
@@ -66,13 +66,6 @@ typedef enum
 	LIS2_SLAVE_ADDREESS   = 0x32,	// ALT : 0x30
 	UNKNOWN_SLAVE_ADDRESS = 0x00
 } ACCEL_I2C_Address;
-
-typedef enum
-{
-	LIS2DW = 0x44,              // WhoamI 0x44
-	LIS2DUX = 0x47,             // WhoamI 0x47
-	ACC_UNKNOWN_DEVICE = 0x00
-} ACCEL_DEVICE_TYPE;
 
 typedef enum
 {

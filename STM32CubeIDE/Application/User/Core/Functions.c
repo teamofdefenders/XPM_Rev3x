@@ -260,7 +260,7 @@ void memory_Init (MEM_PTR *Data_Ptr )
 
 	ACCELERATION_PARAM_TYPE localAccCheck;
 	getAccelParameters(&localAccCheck);
-	if(localAccCheck.mutePeriod == 0)
+	if(localAccCheck.mutePeriod == 0) //temporary patch fix until root cause discovered
 	{
 		accelDataInit(); //Initialize accelerometer data
 		accelParametersInit(); //Initialize accelerometer parameters
@@ -3164,8 +3164,7 @@ void selectDownlinkOperation(MEM_PTR *Data_Ptr, MACHINE_STATE_TYPE stateOfDevice
 			}
 
 			//Container functions do nothing if empty
-			printContainer(&configErrContainer);
-			sendConfigErrors(&memory, &configErrContainer);
+			sendConfigErrors(Data_Ptr, &configErrContainer);
 			freeContainer(&configErrContainer);
 			initContainer(&configErrContainer);
 
@@ -3521,13 +3520,18 @@ bool decodeHBConfigs(MEM_PTR *Data_Ptr, uint8_t *mqttMsg)
 	uint8_t version = 255;
 	uint8_t mode = 255;
 	uint16_t interval = 0;
+	bool modeValid = false;
+	bool intervalValid = false;
+	char hbErrStr[CONFIG_ERR_MSG_SIZE] = "";
+	int buffSize = 0;
 
 	// Transfer MQTT message to a local buffer
 	Word_Transfer(Buff, (char*)mqttMsg);
 
 	char *substr = strstr(Buff, test);
-	if(substr && !isError)
+	if(substr)
 	{
+		buffSize += snprintf(hbErrStr, CONFIG_ERR_MSG_SIZE, "\"heartbeat\":[\"config_error\",");
 		char *verStr = strstr(substr, verTest);
 		if(verStr && !isError)
 		{
@@ -3539,7 +3543,7 @@ bool decodeHBConfigs(MEM_PTR *Data_Ptr, uint8_t *mqttMsg)
 				if(version == 0)
 				{
 					char *modeStr = strstr(substr, modeTest);
-					if(modeStr && !isError)
+					if(modeStr)
 					{
 						modeStr += strlen(modeTest);
 						if(isdigit((unsigned char)modeStr[0]))
@@ -3547,28 +3551,32 @@ bool decodeHBConfigs(MEM_PTR *Data_Ptr, uint8_t *mqttMsg)
 							mode = atoi(modeStr);
 							if(mode >= 0 && mode <= 255)
 							{
-								Data_Ptr->heartBeatData.mode = mode;
-								PRINTF("Setting Heartbeat mode to: %d\r\n", mode);
+								modeValid = true;
+//								Data_Ptr->heartBeatData.mode = mode;
+//								PRINTF("Setting Heartbeat mode to: %d\r\n", mode);
 							}
 							else
 							{
+								buffSize += snprintf((hbErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"mode_out_of_range_[0-255]\",");
 								PRINTF("Heartbeat mode is out of range [0-255]: %d\r\n", mode);
 							}
 						}
 						else
 						{
 							isError = true;
+							buffSize += snprintf((hbErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_mode_type_NAN\",");
 							//"Invalid data type for mode"
 						}
 					}
 					else
 					{
 						isError = true;
+						buffSize += snprintf((hbErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_mode_string\",");
 						//"Mode not found in heartbeat message"
 					}
 
 					char *intStr = strstr(substr, intTest);
-					if(intStr && !isError)
+					if(intStr)
 					{
 						intStr += strlen(intTest);
 						if(isdigit((unsigned char)intStr[0]))
@@ -3578,24 +3586,28 @@ bool decodeHBConfigs(MEM_PTR *Data_Ptr, uint8_t *mqttMsg)
 							if(interval >= 900 && interval <= 65535)
 							{
 								// KCS also need to store to XPS shadow register
-								Data_Ptr->heartBeatData.hbInterval = interval;
-								PRINTF("Setting Heartbeat interval to: %d\r\n", interval);
+								intervalValid = true;
+//								Data_Ptr->heartBeatData.hbInterval = interval;
+//								PRINTF("Setting Heartbeat interval to: %d\r\n", interval);
 							}
 							else
 							{
 								isError = true;
+								buffSize += snprintf((hbErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"interval_out_of_range_[900-65535]\",");
 								PRINTF("Heartbeat interval is invalid: %d\r\n", interval);
 							}
 						}
 						else
 						{
 							isError = true;
+							buffSize += snprintf((hbErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_interval_type_NAN\",");
 							//"Invalid data type for interval"
 						}
 					}
 					else
 					{
 						isError = true;
+						buffSize += snprintf((hbErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_interval_string\",");
 						//"Interval not found in heartbeat message"
 					}
 				}
@@ -3603,17 +3615,20 @@ bool decodeHBConfigs(MEM_PTR *Data_Ptr, uint8_t *mqttMsg)
 				{
 					isError = true;
 					PRINTF("Invalid version number decoded: %d\r\n", version);
+					buffSize += snprintf((hbErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"version_mismatch\",");
 				}
 			}
 			else
 			{
 				isError = true;
+				buffSize += snprintf((hbErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_version_type_NAN\",");
 				//"Invalid data type for version"
 			}
 		}
 		else
 		{
 			isError = true;
+			buffSize += snprintf((hbErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_version_string\",");
 			//"Version not found in heartbeat message"
 		}
 	}
@@ -3623,6 +3638,22 @@ bool decodeHBConfigs(MEM_PTR *Data_Ptr, uint8_t *mqttMsg)
 		//"No heartbeat configuration found."
 	}
 
+	if(!isError && modeValid && intervalValid)
+	{
+		Data_Ptr->heartBeatData.mode = mode;
+		Data_Ptr->heartBeatData.hbInterval = interval;
+	}
+	else
+	{
+		if(buffSize > 0 && buffSize < CONFIG_ERR_MSG_SIZE - 2 && hbErrStr[0] != '\0')
+		{
+			if(hbErrStr[buffSize - 1] == ',')
+			{
+				hbErrStr[buffSize - 1] = ']';
+				addErrorString(hbErrStr);
+			}
+		}
+	}
 	PRINTF("Heartbeat decode error is %d\r\n", isError);
 
 	return isError;

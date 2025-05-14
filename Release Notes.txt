@@ -268,6 +268,7 @@ V0.4.2 (04/02/2025)
 	Get rid oflocation try in the first time through loop	  [XPMH-333]
 	Restructure Camera.c file                                 [XPMH-343]
 	Fixed timestamp function			                      [XPMH-353]
+	Add diagnostic message for configuration error messages   [XPMH-351]
 	Accelerometer free fall set defaults                      [XPMH-355]
 	Implement Accelerometer Muting		                      [XPMH-374]
 	Implement XTRA GPS file download and active antenna       [XPMH-377]
@@ -351,3 +352,21 @@ V0.5.0 (05/01/2025)
 						- Added parameter to getFirmwareDownlink function to change number of tries
 		Temperature.c 	- Refactored temperature module
 		XPS.c 			- Added camera downlink parameters
+
+XPM_Rev3_V1.0.0 (5/14/2025)
+
+		Core files
+			main.c 			- Updated firmware version
+			Accelerometer.h - Fixed LIS2DUX initialization from deep power down
+							- Reduced ACCEL_MSG_SIZE to 500 from 2000 for memory saving
+							- Modified ACCEL_CONFIG_VERSION to 2 from 1 to support mutePeriod
+			Camera.h 		- Modified CAM_MSG_SIZE to 500 from 2000 for memory saving
+			Functions.h 	- Moved TEMP_DEVICE_TYPE from Temperature.h to make device type accessible in Skywire.c
+							- Moved ACCEL_DEVICE_TYPE from Accelerometer.h to make device type accessible in Skywire.c
+						
+		App Source files
+			Accelerometer.c - Modified getAccelConfigStr to include reporting of the mutePeriod parameter
+							- Added ghost write in accelWhoAmI to wake LIS2DUX12 from deep power down
+			Functions.c     - Added key parameter check in memory_Init for environmental parameters.
+			Skywire.c       - Added a part number check in HeartBeat to send empty commas for unknown devices
+			XPS.c           - Fixed incorrect storing of accelerometer mute period parameter

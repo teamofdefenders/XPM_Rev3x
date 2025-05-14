@@ -121,19 +121,19 @@ bool decodeEnvironmentConfigs(uint8_t* mqttMsg)
 							if(sampPeriod < 0 || sampPeriod > 255)
 							{
 								isError = true;
-								buffSize += snprintf((envErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"sample_period_out_of_range\",");
+								buffSize += snprintf((envErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"sample_period_out_of_range_[0-255]\",");
 							}
 						}
 						else
 						{
 							isError = true;
-							buffSize += snprintf((envErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_sample_period_type\",");
+							buffSize += snprintf((envErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_sample_period_type_NAN\",");
 						}
 					}
 					else
 					{
 						isError = true;
-						buffSize += snprintf((envErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_sample_period\",");
+						buffSize += snprintf((envErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_sample_period_string\",");
 					}
 
 					char* alarmWindowStr = strstr(substr, alarmWindowTest);
@@ -146,19 +146,19 @@ bool decodeEnvironmentConfigs(uint8_t* mqttMsg)
 							if(alarmWindow < 0 || alarmWindow > 65535)
 							{
 								isError = true;
-								buffSize += snprintf((envErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"alarm_window_out_of_range\",");
+								buffSize += snprintf((envErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"alarm_window_out_of_range_[0-65535]\",");
 							}
 						}
 						else
 						{
 							isError = true;
-							buffSize += snprintf((envErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_alarm_window_type\",");
+							buffSize += snprintf((envErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_alarm_window_type_NAN\",");
 						}
 					}
 					else
 					{
 						isError = true;
-						buffSize += snprintf((envErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_alarm_window\",");
+						buffSize += snprintf((envErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_alarm_window_string\",");
 					}
 
 					char* alarmSampleStr = strstr(substr, alarmSampleTest);
@@ -171,19 +171,19 @@ bool decodeEnvironmentConfigs(uint8_t* mqttMsg)
 							if(alarmSample < 0 || alarmSample > 65535)
 							{
 								isError = true;
-								buffSize += snprintf((envErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"alarm_sample_period_out_of_range\",");
+								buffSize += snprintf((envErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"alarm_sample_period_out_of_range_[0-65535]\",");
 							}
 						}
 						else
 						{
 							isError = true;
-							buffSize += snprintf((envErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_alarm_sample_period_type\",");
+							buffSize += snprintf((envErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_alarm_sample_period_type_NAN\",");
 						}
 					}
 					else
 					{
 						isError = true;
-						buffSize += snprintf((envErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_alarm_sample_period_window\",");
+						buffSize += snprintf((envErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_alarm_sample_period_window_string\",");
 					}
 
 					char* muteStr = strstr(substr, muteTest);
@@ -196,19 +196,19 @@ bool decodeEnvironmentConfigs(uint8_t* mqttMsg)
 							if(mutePeriod < 0 || mutePeriod > 65535)
 							{
 								isError = true;
-								buffSize += snprintf((envErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"muting_period_out_of_range\",");
+								buffSize += snprintf((envErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"muting_period_out_of_range_[0-65535]\",");
 							}
 						}
 						else
 						{
 							isError = true;
-							buffSize += snprintf((envErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_muting_period_type\",");
+							buffSize += snprintf((envErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_muting_period_type_NAN\",");
 						}
 					}
 					else
 					{
 						isError = true;
-						buffSize += snprintf((envErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_muting_period_window\",");
+						buffSize += snprintf((envErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_muting_period_window_string\",");
 					}
 
 					char* warmStr = strstr(substr, warmTest);
@@ -221,19 +221,19 @@ bool decodeEnvironmentConfigs(uint8_t* mqttMsg)
 							if(warmUp < 0 || warmUp > 255)
 							{
 								isError = true;
-								buffSize += snprintf((envErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"warm_up_out_of_range\",");
+								buffSize += snprintf((envErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"warm_up_out_of_range_[0-255]\",");
 							}
 						}
 						else
 						{
 							isError = true;
-							buffSize += snprintf((envErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_warm_up_type\",");
+							buffSize += snprintf((envErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_warm_up_type_NAN\",");
 						}
 					}
 					else
 					{
 						isError = true;
-						buffSize += snprintf((envErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_warm_up_window\",");
+						buffSize += snprintf((envErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_warm_up_window_string\",");
 					}
 
 					char* chargerStr = strstr(substr, chargerTest);
@@ -246,19 +246,19 @@ bool decodeEnvironmentConfigs(uint8_t* mqttMsg)
 							if(chargeDisableT < 0 || chargeDisableT > 255)
 							{
 								isError = true;
-								buffSize += snprintf((envErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"charger_disable_temp_out_of_range\",");
+								buffSize += snprintf((envErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"charger_disable_temp_out_of_range_[0-255]\",");
 							}
 						}
 						else
 						{
 							isError = true;
-							buffSize += snprintf((envErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_charger_disable_temp_type\",");
+							buffSize += snprintf((envErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_charger_disable_temp_type_NAN\",");
 						}
 					}
 					else
 					{
 						isError = true;
-						buffSize += snprintf((envErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_charger_disable_temp_window\",");
+						buffSize += snprintf((envErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_charger_disable_temp_window_string\",");
 					}
 				}
 				else
@@ -270,13 +270,13 @@ bool decodeEnvironmentConfigs(uint8_t* mqttMsg)
 			else
 			{
 				isError = true;
-				buffSize += snprintf((envErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_version_type\",");
+				buffSize += snprintf((envErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_version_type_NAN\",");
 			}
 		}
 		else
 		{
 			isError = true;
-			buffSize += snprintf((envErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_version\",");
+			buffSize += snprintf((envErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_version_string\",");
 		}
 	}
 	else
@@ -358,19 +358,19 @@ bool decodeTemperatureConfigs(uint8_t* mqttMsg)
 							if(mode < 0 || mode > 255)
 							{
 								isError = true;
-								buffSize += snprintf((tempErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"mode_out_of_range\",");
+								buffSize += snprintf((tempErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"mode_out_of_range_[0-255]\",");
 							}
 						}
 						else
 						{
 							isError = true;
-							buffSize += snprintf((tempErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_mode_type\",");
+							buffSize += snprintf((tempErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_mode_type_NAN\",");
 						}
 					}
 					else
 					{
 						isError = true;
-						buffSize += snprintf((tempErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_mode\",");
+						buffSize += snprintf((tempErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_mode_string\",");
 					}
 
 					char* lowStr = strstr(substr, lowTest);
@@ -383,19 +383,19 @@ bool decodeTemperatureConfigs(uint8_t* mqttMsg)
 							if(lowThresh < 0 || lowThresh > 255)
 							{
 								isError = true;
-								buffSize += snprintf((tempErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"low_threshold_out_of_range\",");
+								buffSize += snprintf((tempErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"low_threshold_out_of_range_[0-255]\",");
 							}
 						}
 						else
 						{
 							isError = true;
-							buffSize += snprintf((tempErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_low_threshold_type\",");
+							buffSize += snprintf((tempErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_low_threshold_type_NAN\",");
 						}
 					}
 					else
 					{
 						isError = true;
-						buffSize += snprintf((tempErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_low_threshold\",");
+						buffSize += snprintf((tempErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_low_threshold_string\",");
 					}
 
 					char* highStr = strstr(substr, highTest);
@@ -408,19 +408,19 @@ bool decodeTemperatureConfigs(uint8_t* mqttMsg)
 							if(highThresh < 0 || highThresh > 255)
 							{
 								isError = true;
-								buffSize += snprintf((tempErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"high_threshold_out_of_range\",");
+								buffSize += snprintf((tempErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"high_threshold_out_of_range_[0-255]\",");
 							}
 						}
 						else
 						{
 							isError = true;
-							buffSize += snprintf((tempErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_high_threshold_type\",");
+							buffSize += snprintf((tempErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_high_threshold_type_NAN\",");
 						}
 					}
 					else
 					{
 						isError = true;
-						buffSize += snprintf((tempErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_high_threshold\",");
+						buffSize += snprintf((tempErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_high_threshold_string\",");
 					}
 
 					char* hysterStr = strstr(substr, hysterTest);
@@ -433,19 +433,19 @@ bool decodeTemperatureConfigs(uint8_t* mqttMsg)
 							if(hysteresis < 0 || hysteresis > 255)
 							{
 								isError = true;
-								buffSize += snprintf((tempErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"hysteresis_out_of_range\",");
+								buffSize += snprintf((tempErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"hysteresis_out_of_range_[0-255]\",");
 							}
 						}
 						else
 						{
 							isError = true;
-							buffSize += snprintf((tempErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_hysteresis_type\",");
+							buffSize += snprintf((tempErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_hysteresis_type_NAN\",");
 						}
 					}
 					else
 					{
 						isError = true;
-						buffSize += snprintf((tempErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_hysteresis\",");
+						buffSize += snprintf((tempErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_hysteresis_string\",");
 					}
 				}
 				else
@@ -457,13 +457,13 @@ bool decodeTemperatureConfigs(uint8_t* mqttMsg)
 			else
 			{
 				isError = true;
-				buffSize += snprintf((tempErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_version_type\",");
+				buffSize += snprintf((tempErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_version_type_NAN\",");
 			}
 		}
 		else
 		{
 			isError = true;
-			buffSize += snprintf((tempErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_version\",");
+			buffSize += snprintf((tempErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_version_string\",");
 		}
 	}
 	else
@@ -541,19 +541,19 @@ bool decodeHumidityConfigs(uint8_t* mqttMsg)
 							if(mode < 0 || mode > 255)
 							{
 								isError = true;
-								buffSize += snprintf((humErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"mode_out_of_range\",");
+								buffSize += snprintf((humErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"mode_out_of_range_[0-255]\",");
 							}
 						}
 						else
 						{
 							isError = true;
-							buffSize += snprintf((humErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_mode_type\",");
+							buffSize += snprintf((humErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_mode_type_NAN\",");
 						}
 					}
 					else
 					{
 						isError = true;
-						buffSize += snprintf((humErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_mode\",");
+						buffSize += snprintf((humErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_mode_string\",");
 					}
 
 					char* lowStr = strstr(substr, lowTest);
@@ -566,19 +566,19 @@ bool decodeHumidityConfigs(uint8_t* mqttMsg)
 							if(lowThresh < 0 || lowThresh > 255)
 							{
 								isError = true;
-								buffSize += snprintf((humErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"low_threshold_out_of_range\",");
+								buffSize += snprintf((humErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"low_threshold_out_of_range_[0-255]\",");
 							}
 						}
 						else
 						{
 							isError = true;
-							buffSize += snprintf((humErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_low_threshold_type\",");
+							buffSize += snprintf((humErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_low_threshold_type_NAN\",");
 						}
 					}
 					else
 					{
 						isError = true;
-						buffSize += snprintf((humErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_low_threshold\",");
+						buffSize += snprintf((humErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_low_threshold_string\",");
 					}
 
 					char* highStr = strstr(substr, highTest);
@@ -591,19 +591,19 @@ bool decodeHumidityConfigs(uint8_t* mqttMsg)
 							if(highThresh < 0 || highThresh > 255)
 							{
 								isError = true;
-								buffSize += snprintf((humErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"high_threshold_out_of_range\",");
+								buffSize += snprintf((humErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"high_threshold_out_of_range_[0-255]\",");
 							}
 						}
 						else
 						{
 							isError = true;
-							buffSize += snprintf((humErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_high_threshold_type\",");
+							buffSize += snprintf((humErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_high_threshold_type_NAN\",");
 						}
 					}
 					else
 					{
 						isError = true;
-						buffSize += snprintf((humErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_high_threshold\",");
+						buffSize += snprintf((humErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_high_threshold_string\",");
 					}
 
 					char* hysterStr = strstr(substr, hysterTest);
@@ -616,19 +616,19 @@ bool decodeHumidityConfigs(uint8_t* mqttMsg)
 							if(hysteresis < 0 || hysteresis > 255)
 							{
 								isError = true;
-								buffSize += snprintf((humErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"hysteresis_out_of_range\",");
+								buffSize += snprintf((humErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"hysteresis_out_of_range_[0-255]\",");
 							}
 						}
 						else
 						{
 							isError = true;
-							buffSize += snprintf((humErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_hysteresis_type\",");
+							buffSize += snprintf((humErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_hysteresis_type_NAN\",");
 						}
 					}
 					else
 					{
 						isError = true;
-						buffSize += snprintf((humErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_hysteresis\",");
+						buffSize += snprintf((humErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_hysteresis_string\",");
 					}
 				}
 				else
@@ -640,13 +640,13 @@ bool decodeHumidityConfigs(uint8_t* mqttMsg)
 			else
 			{
 				isError = true;
-				buffSize += snprintf((humErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_version_type\",");
+				buffSize += snprintf((humErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_version_type_NAN\",");
 			}
 		}
 		else
 		{
 			isError = true;
-			buffSize += snprintf((humErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_version\",");
+			buffSize += snprintf((humErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_version_string\",");
 		}
 	}
 	else

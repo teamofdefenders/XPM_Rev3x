@@ -1416,6 +1416,8 @@ void HeartBeat(MEM_PTR *Data_Ptr)
 	//	for (int instance =1; instance < 11; instance++) //to loop heartbeats for testing purposes
 	//	{
 
+	TEMP_DEVICE_TYPE localTemp;
+	getTempDeviceType(&localTemp);
 	getTempSensorData(&tempParameters);
 
 
@@ -1430,8 +1432,10 @@ void HeartBeat(MEM_PTR *Data_Ptr)
 	Build_MSG(Data_Ptr, timeStamp);
 
 	Build_MSG(Data_Ptr, MQTT_DATA);
-
-	utoa( tempParameters.Device_ID, (char*) (&(Memory[ buf])), 10);
+	if(localTemp != TEMP_UNKNOWN_DEVICE)
+	{
+		utoa( tempParameters.Device_ID, (char*) (&(Memory[ buf])), 10);
+	}
 
 	while (Memory[ buf])
 		buf++;
@@ -1440,19 +1444,28 @@ void HeartBeat(MEM_PTR *Data_Ptr)
 	//Build_MSG(Data_Ptr, MQTT_HB_DATA_HDR);   //temporary while "Bat" is hardcoded as a string
 
 	Build_MSG(Data_Ptr, MQTT_APND);
-	utoa( tempParameters.Temperature, (char*) (&(Memory[ buf])), 10);
+	if(localTemp != TEMP_UNKNOWN_DEVICE)
+	{
+		utoa( tempParameters.Temperature, (char*) (&(Memory[ buf])), 10);
+	}
 
 	while (Memory[ buf])
 		buf++;
 
 	Build_MSG(Data_Ptr, MQTT_APND);
-	utoa( tempParameters.Device_ID, (char*) (&(Memory[ buf])), 10);
+	if(localTemp != TEMP_UNKNOWN_DEVICE)
+	{
+		utoa( tempParameters.Device_ID, (char*) (&(Memory[ buf])), 10);
+	}
 
 	while (Memory[ buf])
 		buf++;
 
 	Build_MSG(Data_Ptr, MQTT_APND);
-	utoa( tempParameters.Humidity, (char*) (&(Memory[ buf])), 10);
+	if(localTemp != TEMP_UNKNOWN_DEVICE)
+	{
+		utoa( tempParameters.Humidity, (char*) (&(Memory[ buf])), 10);
+	}
 
 	while (Memory[ buf])
 		buf++;
@@ -4241,7 +4254,7 @@ void sendDeviceConfig( MEM_PTR *Data_Ptr, STATUS_UPLINK_TYPE uplnkType )
 	{
 		//CSC snprintf for devID,type,timestamp,response type,firmware,heartbeat, and day night
 		buffSize = snprintf(configBuff, MEMORY_MAX, "\1{\"dev_id\":\"%lu\",\"type\":\"%s\",\"timestamp\":\"%s\",\"response_type\":\"%s\",\"firmware_version\":\"%s\",\r\n\"heartbeat\":{\"version\":%u,\"mode\":%u,\"hb_interval\":%u},\r\n%s",
-				UNIQUE_Device_ID, "device_status", timebuff, responseTypeBuff, "XPM_LowP_V0.5.0", 0, Data_Ptr->heartBeatData.mode, Data_Ptr->heartBeatData.hbInterval, dayNightConfigStr());
+				UNIQUE_Device_ID, "device_status", timebuff, responseTypeBuff, "XPM_Rev3_V1.0.0", 0, Data_Ptr->heartBeatData.mode, Data_Ptr->heartBeatData.hbInterval, dayNightConfigStr());
 
 		//CSC snprintf for pir, motion filter day, and motion filter night
 		buffSize += snprintf((configBuff + buffSize), (MEMORY_MAX - buffSize), ",\r\n%s", getPirConfigStr());

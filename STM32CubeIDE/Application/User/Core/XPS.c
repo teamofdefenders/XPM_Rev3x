@@ -543,8 +543,8 @@ void XPS_paramStore ( MEM_PTR *Data_Ptr )
 	paramPage1 [ ACC_THRESH_LSB ] = accParams.threshold;
 	paramPage1 [ ACC_HYSTER_MSB ] = accParams.hysteresis >> 8;
 	paramPage1 [ ACC_HYSTER_LSB ] = accParams.hysteresis;
-	paramPage1 [ ACC_MUTE_LSB ] = accParams.mutePeriod >> 8;
-	paramPage1 [ ACC_MUTE_MSB ] = accParams.mutePeriod;
+	paramPage1 [ ACC_MUTE_LSB ] = accParams.mutePeriod;
+	paramPage1 [ ACC_MUTE_MSB ] = accParams.mutePeriod >> 8;
 
 	paramPage1 [ DOWNLOAD_READY ] = Data_Ptr->Flash.fwDownloadRdy;
 

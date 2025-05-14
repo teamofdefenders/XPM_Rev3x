@@ -176,20 +176,20 @@ bool decodeGPSConfigs(uint8_t *mqttMsg)
 							{
 								isError = true;
 								PRINTF("GPS mode is out of range [0-255]: %d\r\n", mode);
-								buffSize += snprintf((gpsErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"mode_out_of_range\",");
+								buffSize += snprintf((gpsErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"mode_out_of_range_[0-255]\",");
 							}
 						}
 						else
 						{
 							isError = true;
 							//"Invalid data type for mode"
-							buffSize += snprintf((gpsErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_mode_type\",");
+							buffSize += snprintf((gpsErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_mode_type_NAN\",");
 						}
 					}
 					else
 					{
 						isError = true;
-						buffSize += snprintf((gpsErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_mode\",");
+						buffSize += snprintf((gpsErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_mode_string\",");
 						//"Mode not found in GPS message"
 					}
 
@@ -210,21 +210,21 @@ bool decodeGPSConfigs(uint8_t *mqttMsg)
 							{
 								isError = true;
 								PRINTF("GPS acquisition period is out of range [0-65535]: %d\r\n", acPeriod);
-								buffSize += snprintf((gpsErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"acquisition_period_out_of_range\",");
+								buffSize += snprintf((gpsErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"acquisition_period_out_of_range_[0-65535]\",");
 							}
 						}
 						else
 						{
 							isError = true;
 							//"Invalid data type for acquisition period"
-							buffSize += snprintf((gpsErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_acquisition_period_type\",");
+							buffSize += snprintf((gpsErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_acquisition_period_type_NAN\",");
 						}
 					}
 					else
 					{
 						isError = true;
 						//"Acquisition period not found in GPS message"
-						buffSize += snprintf((gpsErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_acquisition_period\",");
+						buffSize += snprintf((gpsErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_acquisition_period_string\",");
 					}
 
 					char *geoDistStr = strstr(substr, geoDistTest);
@@ -244,20 +244,20 @@ bool decodeGPSConfigs(uint8_t *mqttMsg)
 							{
 								isError = true;
 								PRINTF("GPS threshold distance is out of range [0-65535]: %d\r\n", distance);
-								buffSize += snprintf((gpsErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"threshold_distance_out_of_range\",");
+								buffSize += snprintf((gpsErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"threshold_distance_out_of_range_[0-65535]\",");
 							}
 						}
 						else
 						{
 							isError = true;
 							//"Invalid data type for threshold distance"
-							buffSize += snprintf((gpsErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_threshold_distance_type\",");
+							buffSize += snprintf((gpsErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_threshold_distance_type_NAN\",");
 						}
 					}
 					else
 					{
 						isError = true;
-						buffSize += snprintf((gpsErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_threshold_distance\",");
+						buffSize += snprintf((gpsErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_threshold_distance_string\",");
 					}
 
 					char *alarmWindowStr = strstr(substr, alarmWindowTest);
@@ -277,20 +277,20 @@ bool decodeGPSConfigs(uint8_t *mqttMsg)
 							{
 								isError = true;
 								PRINTF("GPS alarm window is out of range [0-65535]: %d\r\n", distance);
-								buffSize += snprintf((gpsErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"alarm_window_out_of_range\",");
+								buffSize += snprintf((gpsErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"alarm_window_out_of_range_[0-65535]\",");
 							}
 						}
 						else
 						{
 							isError = true;
 							//"Invalid data type for alarm window"
-							buffSize += snprintf((gpsErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_alarm_window_type\",");
+							buffSize += snprintf((gpsErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_alarm_window_type_NAN\",");
 						}
 					}
 					else
 					{
 						isError = true;
-						buffSize += snprintf((gpsErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_alarm_window\",");
+						buffSize += snprintf((gpsErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_alarm_window_string\",");
 					}
 
 					char *alarmSampleStr = strstr(substr, alarmSampleTest);
@@ -310,19 +310,19 @@ bool decodeGPSConfigs(uint8_t *mqttMsg)
 							{
 								isError = true;
 								PRINTF("GPS alarm sample period is out of range [0-255]: %d\r\n", distance);
-								buffSize += snprintf((gpsErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"alarm_sample_period_out_of_range\",");
+								buffSize += snprintf((gpsErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"alarm_sample_period_out_of_range_[0-255]\",");
 							}
 						}
 						else
 						{
 							isError = true;
-							buffSize += snprintf((gpsErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_alarm_sample_period_type\",");
+							buffSize += snprintf((gpsErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_alarm_sample_period_type_NAN\",");
 						}
 					}
 					else
 					{
 						isError = true;
-						buffSize += snprintf((gpsErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_alarm_sample_period\",");
+						buffSize += snprintf((gpsErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_alarm_sample_period_string\",");
 					}
 
 					char *hysteresisStr = strstr(substr, hysteresisTest);
@@ -342,19 +342,19 @@ bool decodeGPSConfigs(uint8_t *mqttMsg)
 							{
 								isError = true;
 								PRINTF("GPS hysteresis is out of range [0-65535]: %d\r\n", distance);
-								buffSize += snprintf((gpsErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"hysteresis_out_of_range\",");
+								buffSize += snprintf((gpsErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"hysteresis_out_of_range_[0-65535]\",");
 							}
 						}
 						else
 						{
 							isError = true;
-							buffSize += snprintf((gpsErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_hysteresis_type\",");
+							buffSize += snprintf((gpsErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_hysteresis_type_NAN\",");
 						}
 					}
 					else
 					{
 						isError = true;
-						buffSize += snprintf((gpsErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_hysteresis\",");
+						buffSize += snprintf((gpsErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_hysteresis_string\",");
 					}
 				}
 				else
@@ -368,13 +368,13 @@ bool decodeGPSConfigs(uint8_t *mqttMsg)
 			{
 				isError = true;
 				//"Invalid data type for version"
-				buffSize += snprintf((gpsErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_version_type\",");
+				buffSize += snprintf((gpsErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_version_type_NAN\",");
 			}
 		}
 		else
 		{
 			isError = true;
-			buffSize += snprintf((gpsErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_version\",");
+			buffSize += snprintf((gpsErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_version_string\",");
 		}
 	}
 	else
