@@ -1445,7 +1445,7 @@ void OTAProcess (MEM_PTR *Data_Ptr, OTA_FILE_TYPE *OTAData )
 			{
 				PRINTF("Decoding Data\r\n");
 				calCRC = FWDecodeFile(OTAData, Data_Ptr);
-				PRINTF("CRC calc is %d or hex %x\r\n",calCRC,calCRC);
+				PRINTF("CRC calc is %lu or hex %x\r\n",calCRC,calCRC);
 				// if multi-file need to program the file here
 				// then erase the flash memory
 				//PRINTF("Clear Firmware Array\r\n");
@@ -1461,10 +1461,18 @@ void OTAProcess (MEM_PTR *Data_Ptr, OTA_FILE_TYPE *OTAData )
 	if (errorMode != 0)
 	{
 		PRINTF("Error in Receiving Data: Error is %d\r\n", errorMode);
+		if(errorMode == 4)
+		{
+			sendDiagnostic(Data_Ptr,"\"firmware\":[\"swap_bank_aborted\",\"pages_missing\"]");
+		}
+		else
+		{
+			sendDiagnostic(Data_Ptr,"\"firmware\":[\"swap_bank_aborted\",\"improper_firmware_decode\"]");
+		}
+
 		FW_CRC_Ack(Data_Ptr, false, OTAData);
 	}
 	else
-
 	{
 		// TODO Something should be here for files completed if multi-file
 		PRINTF("Break 5 error is %d\r\n", errorMode);
@@ -1476,7 +1484,7 @@ void OTAProcess (MEM_PTR *Data_Ptr, OTA_FILE_TYPE *OTAData )
 		BANK_TYPE currentBank =  getSwapBank();
 		Reflash(Data_Ptr, currentBank);
 
-		if(errorMode == 0 && OTAData->numberOfMissingPages == 0 && crcIsGood)
+		if(errorMode == 0 && OTAData->numberOfMissingPages == 0)
 		{
 			FW_CRC_Ack(Data_Ptr, crcIsGood, OTAData);
 
@@ -1506,7 +1514,6 @@ void OTAProcess (MEM_PTR *Data_Ptr, OTA_FILE_TYPE *OTAData )
 		{
 			PRINTF("An error was detected. Aborting swap bank.\r\n");
 		}
-
 	}
 }
 
@@ -2367,7 +2374,7 @@ void decodeFwPage (OTA_FILE_TYPE *OTAData )
 				int crc_length = strcspn(crc_str, ",");
 				char xcrcString[10] = "";
 				strncpy(xcrcString, crc_str, crc_length);
-				OTAData->xmitCRC = strtol(xcrcString, NULL, 10);
+				OTAData->xmitCRC = strtoul(xcrcString, NULL, 10);
 			}
 
 			break; // Exit the loop as we've successfully extracted data

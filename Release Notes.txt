@@ -374,3 +374,5 @@ XPM_Rev3_V1.0.0 (5/14/2025)
 XPM_Rev3_V1.0.1 (5/14/2025)
 		Accelerometer.c - Changed mutePeriod parameter from uint8_t to uint_32t in decodeAccelConfigs()
 		Functions.c     - Wrapped swap bank functionality in if block to prevent swapping if pages are missing
+						- Added diagnostic for failed OTA
+						- Fixed CRC overflow issue
