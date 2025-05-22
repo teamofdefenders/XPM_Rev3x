@@ -1198,13 +1198,10 @@ void Update_State ( MEM_PTR *Data_Ptr )
 			PRINTF("Update_State includes WAKE_STATE and GET_DOWNLINKS\r\n");
 			_State ^= GET_DOWNLINKS;
 			Enable_Modem ( Data_Ptr );
-			getFirmwareDownlink(Data_Ptr, 1);
+			getFirmwareDownlink(Data_Ptr, 1);  //We should handle the downlinks here, but we don't use this flag anymore
 		}
 
-		if (fwPending)
-		{
-			startOTAProcess(Data_Ptr);
-		}
+
 		//checkTime();
 
 		if (firstTimeBoot)
@@ -1308,6 +1305,12 @@ void Update_State ( MEM_PTR *Data_Ptr )
 			{
 				cellMovementStart(Data_Ptr, movementstop);
 				movementstop = false;
+			}
+			if (fwPending)
+			{
+				fwPending = false;
+				clearMqttStruct(); //Clear structure before we get all the firmware messages
+				startOTAProcess(Data_Ptr);
 			}
 		}
 
@@ -3198,6 +3201,7 @@ void selectDownlinkOperation(MEM_PTR *Data_Ptr, MACHINE_STATE_TYPE stateOfDevice
 		{
 			PRINTF("Firmware Available\r\n");
 			fwPending = getOTAFileInfo (&otaData, opItter );
+			//Should send a diagnostic massage is fwPending is false due to error
 			clearMqttMsg(opItter);
 		}
 		else if(downLinkPackets.downLinkEnum[opItter] == DL_FW_COMPLETE)
@@ -3248,12 +3252,6 @@ void selectDownlinkOperation(MEM_PTR *Data_Ptr, MACHINE_STATE_TYPE stateOfDevice
 		}//End of if / else if/ else
 	} //End of loop
 
-	if (fwPending && ((stateOfDevice == WAKEUP_HB) || (stateOfDevice == IDLE)))
-	{
-		fwPending = false;
-		clearMqttStruct(); //Clear structure before we get all the firmware messages
-		startOTAProcess(Data_Ptr);
-	}
 }
 
 /**
