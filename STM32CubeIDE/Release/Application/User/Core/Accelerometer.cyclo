@@ -10,9 +10,9 @@
 ../Application/User/Core/Accelerometer.c:411:6:accelClearLatch	9
 ../Application/User/Core/Accelerometer.c:499:6:printAccelData	2
 ../Application/User/Core/Accelerometer.c:516:18:getAccelFullScaleRange	6
-../Application/User/Core/Accelerometer.c:557:18:getAccelMode	5
+../Application/User/Core/Accelerometer.c:557:18:getAccelMode	6
 ../Application/User/Core/Accelerometer.c:599:18:getAccelResolution	5
-../Application/User/Core/Accelerometer.c:644:17:getAccelDataRate	18
+../Application/User/Core/Accelerometer.c:644:17:getAccelDataRate	22
 ../Application/User/Core/Accelerometer.c:769:6:setAccelFullScaleRange	7
 ../Application/User/Core/Accelerometer.c:816:6:setAccelDataRate	18
 ../Application/User/Core/Accelerometer.c:943:6:setAccelMode	6
