@@ -25,8 +25,8 @@
 ../Application/User/Core/Skywire.c:566:6:CELL_PWRUPDT	2
 ../Application/User/Core/Skywire.c:681:6:CELL_ACCEUPDT	6
 ../Application/User/Core/Skywire.c:801:6:CELL_PICUPDT	19
-../Application/User/Core/Skywire.c:1099:6:CELL_PIRUPDT	3
-../Application/User/Core/Skywire.c:1157:6:cellMovementStart	3
+../Application/User/Core/Skywire.c:1099:6:CELL_PIRUPDT	2
+../Application/User/Core/Skywire.c:1157:6:cellMovementStart	2
 ../Application/User/Core/Skywire.c:1215:6:CELL_TIMEUPDT	2
 ../Application/User/Core/Skywire.c:1319:6:CELL_LOGUPDT_EXTEND	1
 ../Application/User/Core/Skywire.c:1243:6:CELL_LOGUPDT	6

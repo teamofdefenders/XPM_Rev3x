@@ -1104,8 +1104,8 @@ void CELL_PIRUPDT(MEM_PTR *Data_Ptr, bool start)
 
 	Command = CHECK;
 	CELL_COMMAND(Data_Ptr);
-	if (Cell_State != CELL_OK)
-		return;
+//	if (Cell_State != CELL_OK)
+//		return;
 
 	//Gage to fix this for motion stops
 	char timeStamp[MEMORY_MAX] = {0};
@@ -1162,8 +1162,8 @@ void cellMovementStart (MEM_PTR *Data_Ptr, bool startStop)
 
 	Command = CHECK;
 	CELL_COMMAND(Data_Ptr);
-	if (Cell_State != CELL_OK)
-		return;
+//	if (Cell_State != CELL_OK)
+//		return;
 
 	//Gage to fix this for motion stops
 	char timeStamp[MEMORY_MAX] = {0};
