@@ -27,6 +27,7 @@
 #define DEFAULT_NIGHT_HOURS 2 //7 P.M. default nighttime start
 #define DEFAULT_NIGHT_MINUTES 1
 #define DEFAULT_LAST_COOLDOWN 15
+#define DAY_NIGHT_CONFIG_VERSION 1 //1 does not have mode, 0 has mode.
 /************************ Public Function Prototypes ************************/
 
 void dayNightInit(void); //Initializes business hours to default parameters
