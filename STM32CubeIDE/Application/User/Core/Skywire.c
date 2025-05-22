@@ -4245,14 +4245,14 @@ void sendDeviceConfig( MEM_PTR *Data_Ptr, STATUS_UPLINK_TYPE uplnkType )
 	{
 		//CSC snprintf for devID,type,timestamp,response type,firmware,heartbeat, and day night
 		buffSize = snprintf(configBuff, MEMORY_MAX, "\1{\"dev_id\":\"%lu\",\"type\":\"%s\",\"timestamp\":\"%s\",\"response_type\":\"%s\",\"firmware_version\":\"%s\",\r\n\"heartbeat\":{\"version\":%u,\"mode\":%u,\"hb_interval\":%u},\r\n%s",
-				UNIQUE_Device_ID, "device_status", timebuff, responseTypeBuff, "XPM_Rev3_V1.0.1", 0, Data_Ptr->heartBeatData.mode, Data_Ptr->heartBeatData.hbInterval, dayNightConfigStr());
+				UNIQUE_Device_ID, "device_status", timebuff, responseTypeBuff, "XPM_Rev3_V1.0.2", 0, Data_Ptr->heartBeatData.mode, Data_Ptr->heartBeatData.hbInterval, dayNightConfigStr());
 
 		//CSC snprintf for pir, motion filter day, and motion filter night
 		buffSize += snprintf((configBuff + buffSize), (MEMORY_MAX - buffSize), ",\r\n%s", getPirConfigStr());
 
 		//CSC snprintf for buzzer and environment information
 		buffSize += snprintf((configBuff + buffSize), (MEMORY_MAX - buffSize), ",\r\n\"buzzer\":{\"version\":%u,\"mode\":%u,\"start_motion_cycles\":%u,\"stop_motion_cycles\":%u},\r\n%s,",
-				0, 1, 10, 10, getEnvironmentConfigStr());
+				0, 13, 2, 1, getEnvironmentConfigStr());
 
 		//CSC snprintf for temp/humidity and accelerometer data.
 		buffSize += snprintf((configBuff + buffSize), (MEMORY_MAX - buffSize), "\r\n%s,\r\n%s,\r\n\%s",
@@ -4265,7 +4265,7 @@ void sendDeviceConfig( MEM_PTR *Data_Ptr, STATUS_UPLINK_TYPE uplnkType )
 
 		//CSC snprintf for cell and device status
 		buffSize += snprintf((configBuff + buffSize), (MEMORY_MAX - buffSize), "\r\n\"cell\":{\"version\":%u,\"mode\":%u,\"warm_up\":%u,\"listen_period\":%u,\"listen_max_time\":%u},\"device\":{\"version\":%u,\"mode\":%u,\"log_level\":%u}}",
-				1, 1, 10, 20, 30, 1, 2, 1);
+				1, 3, 2, 30, 1800, 1, 0, 0);
 	}
 
 	if(buffSize > 0 && buffSize < MEMORY_MAX && configBuff[0] != '\0')
