@@ -1102,11 +1102,6 @@ void CELL_PIRUPDT(MEM_PTR *Data_Ptr, bool start)
 	Log_Single( LOG_MSG_CELL_PIRUPDT);
 #endif // Log_Level_2
 
-	Command = CHECK;
-	CELL_COMMAND(Data_Ptr);
-//	if (Cell_State != CELL_OK)
-//		return;
-
 	//Gage to fix this for motion stops
 	char timeStamp[MEMORY_MAX] = {0};
 	Time_StampISO(timeStamp);
@@ -1159,11 +1154,6 @@ void cellMovementStart (MEM_PTR *Data_Ptr, bool startStop)
 #ifdef Log_Level_2
 	Log_Single( LOG_MSG_cell_Movement_Start);
 #endif // Log_Level_2
-
-	Command = CHECK;
-	CELL_COMMAND(Data_Ptr);
-//	if (Cell_State != CELL_OK)
-//		return;
 
 	//Gage to fix this for motion stops
 	char timeStamp[MEMORY_MAX] = {0};
