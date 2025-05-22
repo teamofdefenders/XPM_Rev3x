@@ -59,7 +59,7 @@
 ../Application/User/Core/ArducamCamera.c:843:6:setCapture	1
 ../Application/User/Core/ArducamCamera.c:336:6:cameraCaptureThread	3
 ../Application/User/Core/ArducamCamera.c:847:6:waitI2cIdle	1
-../Application/User/Core/ArducamCamera.c:195:6:cameraGetSensorConfig	4
+../Application/User/Core/ArducamCamera.c:195:6:cameraGetSensorConfig	3
 ../Application/User/Core/ArducamCamera.c:218:11:cameraBegin	1
 ../Application/User/Core/ArducamCamera.c:255:11:cameraSetAutoFocus	1
 ../Application/User/Core/ArducamCamera.c:262:11:cameraTakePicture	3
