@@ -4274,8 +4274,8 @@ void sendDeviceConfig( MEM_PTR *Data_Ptr, STATUS_UPLINK_TYPE uplnkType )
 
 
 		//CSC snprintf for cell and device status
-		buffSize += snprintf((configBuff + buffSize), (MEMORY_MAX - buffSize), "\r\n\"cell\":{\"version\":%u,\"mode\":%u,\"warm_up\":%u},\"device\":{\"version\":%u,\"mode\":%u}}",
-				0, 1, 10, 0, 2);
+		buffSize += snprintf((configBuff + buffSize), (MEMORY_MAX - buffSize), "\r\n\"cell\":{\"version\":%u,\"mode\":%u,\"warm_up\":%u,\"listen_period\":%u,\"listen_max_time\":%u},\"device\":{\"version\":%u,\"mode\":%u,\"log_level\":%u}}",
+				1, 1, 10, 20, 30, 1, 2, 1);
 	}
 
 	if(buffSize > 0 && buffSize < MEMORY_MAX && configBuff[0] != '\0')

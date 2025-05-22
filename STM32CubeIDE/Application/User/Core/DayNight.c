@@ -335,7 +335,7 @@ char* dayNightConfigStr()
 	bool valid = false;
 
 	int buffSize = snprintf(buffer, 500, "\"day_night\":{\"version\":%u,\"day_start_time\":\"%02u:%02u\",\"night_start_time\":\"%02u:%02u\"}",
-			DAY_NIGHT_CONFIG_VERSION ,privateBusiness.dayTime.hours, privateBusiness.dayTime.minutes, privateBusiness.nightTime.hours, privateBusiness.nightTime.minutes);
+			DAY_NIGHT_CONFIG_VERSION, privateBusiness.dayTime.hours, privateBusiness.dayTime.minutes, privateBusiness.nightTime.hours, privateBusiness.nightTime.minutes);
 
 	if(buffSize > 0 && buffSize < 500)
 	{
