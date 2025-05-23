@@ -354,6 +354,8 @@ V0.5.0 (05/01/2025)
 		XPS.c 			- Added camera downlink parameters
 
 XPM_Rev3_V1.0.0 (5/14/2025)
+	Drivers files
+	    none
 
 		Core files
 			main.c 			- Updated firmware version
@@ -372,7 +374,31 @@ XPM_Rev3_V1.0.0 (5/14/2025)
 			XPS.c           - Fixed incorrect storing of accelerometer mute period parameter
 			
 XPM_Rev3_V1.0.1 (5/14/2025)
+	Drivers files
+	    none
+		
+	Core files
+		main.c - Updated firmware version
+				
+	App Source files 
 		Accelerometer.c - Changed mutePeriod parameter from uint8_t to uint_32t in decodeAccelConfigs()
 		Functions.c     - Wrapped swap bank functionality in if block to prevent swapping if pages are missing
 						- Added diagnostic for failed OTA
 						- Fixed CRC overflow issue
+										
+XPM_Rev3_V1.0.1 (05/27/2025)
+Field Trial Improvements
+
+	Drivers files
+	    none
+		
+	Core files
+		main.c - Updated firmware version
+		DayNight.h  - Changed default version to 1
+		
+	App Source files 
+		DayNight.c  - Fixed dayNightConfigStr function to return correct default parameters
+		Functions.c - Moved the OTA process start to the end of Update_State function
+		            - Removed OTA process start from the selectDownlinkOperation function
+		Skywire.c   - Removed CELL_COMMAND checks in CELL_PIRUPDT and cellMovementStart functions for possible Wrong messages being sent to back office
+					- Fixed defaults in sendDeviceConfig function and updated version
