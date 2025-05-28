@@ -671,6 +671,28 @@ void Update_State ( MEM_PTR *Data_Ptr )
 			__HAL_GPIO_EXTI_CLEAR_IT(GPIO_PIN_ALL);
 			HAL_GPIO_WritePin ( Buzzer_GPIO_Port , Buzzer_Pin , GPIO_PIN_RESET );  //for simulated battery power operation
 
+			bool testington = false;
+
+			GPIO_InitTypeDef testStruct;
+			testStruct.Pin = PIR_Motion_Pin;
+			testStruct.Mode = GPIO_MODE_INPUT;
+			testStruct.Pull = GPIO_NOPULL;
+			HAL_GPIO_Init(PIR_Motion_GPIO_Port, &testStruct);
+
+			for (int i = 0; i < 100; i++)
+			{
+				testington = Is_Pin_Low( PIR_Motion_GPIO_Port , PIR_Motion_Pin );
+
+				if (!testington)
+				{
+					PRINTF("HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH\r\n\r\n");
+				}
+				else
+				{
+					PRINTF("LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL\r\n\r\n");
+				}
+				HAL_Delay(200);
+			}
 
 			if ( _State & WAKE_STATE )
 			{
