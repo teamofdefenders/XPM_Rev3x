@@ -1213,6 +1213,10 @@ void MX_GPIO_Init(void)
 {
 	GPIO_InitTypeDef GPIO_InitStruct = {0};
 	/* USER CODE BEGIN MX_GPIO_Init_1 */
+	GPIO_InitStruct.Pin = PIR_Motion_Pin;
+	GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	HAL_GPIO_Init(PIR_Motion_GPIO_Port, &GPIO_InitStruct);
 	/* USER CODE END MX_GPIO_Init_1 */
 
 	/* GPIO Ports Clock Enable */
