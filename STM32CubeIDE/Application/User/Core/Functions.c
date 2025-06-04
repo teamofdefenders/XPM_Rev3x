@@ -673,7 +673,8 @@ void Update_State ( MEM_PTR *Data_Ptr )
 
 			if(!firstTimeBoot && pIRTriggered)
 			{
-				PRINTF("PIR FILTER RESULT IS: %d\r\n", PIRConfirmMotionFilter());
+				uint8_t filterResult = PIRConfirmMotionFilter();
+				PRINTF("PIR FILTER RESULT IS: %d\r\n", filterResult);
 			}
 
 			if ( _State & WAKE_STATE )
