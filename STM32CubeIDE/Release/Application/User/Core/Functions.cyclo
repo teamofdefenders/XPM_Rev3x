@@ -17,7 +17,7 @@
 ../Application/User/Core/Functions.c:1946:6:IsError	7
 ../Application/User/Core/Functions.c:1982:6:isBufferPopulated	3
 ../Application/User/Core/Functions.c:2084:6:Build_MSG	3
-../Application/User/Core/Functions.c:2109:6:LOG_Init	4
+../Application/User/Core/Functions.c:2109:6:LOG_Init	5
 ../Application/User/Core/Functions.c:2200:6:Read_All_UART_Log	2
 ../Application/User/Core/Functions.c:2218:6:Read_Last_UART_Log	2
 ../Application/User/Core/Functions.c:2231:6:vcom_Trace	2
@@ -72,7 +72,7 @@
 ../Application/User/Core/Functions.c:4213:6:sendBatteryStatus	4
 ../Application/User/Core/Functions.c:4257:6:buzzerTone	1
 ../Application/User/Core/Functions.c:4280:6:restartModem	1
-../Application/User/Core/Functions.c:4288:10:minValue4	71
+../Application/User/Core/Functions.c:4288:10:minValue4	67
 ../Application/User/Core/Functions.c:4499:6:decodeCommand	1
 ../Application/User/Core/Functions.c:4523:8:initContainer	2
 ../Application/User/Core/Functions.c:179:6:memory_Init	11

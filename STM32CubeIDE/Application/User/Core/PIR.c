@@ -637,6 +637,10 @@ uint8_t PIRConfirmMotionFilter (void)
 	uint8_t nearMotionPollThreshold = 0;
 	uint8_t confirmMotionPollThreshold = 0;
 	uint8_t highPollCount = 0;
+	nightTimeParam.Motion_Confirm_Window = 8000;
+	nightTimeParam.Near_Motion_Threshhold = 40;
+	nightTimeParam.Motion_Threshhold = 80;
+
 	numOfPolls = nightTimeParam.Motion_Confirm_Window/100;
 	nearMotionPollThreshold = (nightTimeParam.Near_Motion_Threshhold*numOfPolls)/100;
 	confirmMotionPollThreshold = (nightTimeParam.Motion_Threshhold*numOfPolls)/100;
