@@ -9,3 +9,4 @@
 ../Application/User/Core/PIR.c:317:6:decodeMotionFilter	42
 ../Application/User/Core/PIR.c:600:7:getPirConfigStr	1
 ../Application/User/Core/PIR.c:628:10:getPirMutePeriod	1
+../Application/User/Core/PIR.c:633:9:PIRConfirmMotionFilter	4

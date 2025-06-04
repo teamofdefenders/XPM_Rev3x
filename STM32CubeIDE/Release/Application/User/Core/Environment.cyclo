@@ -1,9 +1,9 @@
 ../Application/User/Core/Environment.c:17:6:environmentParametersInit	1
 ../Application/User/Core/Environment.c:35:6:getEnvironmentParameters	1
 ../Application/User/Core/Environment.c:53:6:setEnvironmentParameters	1
-../Application/User/Core/Environment.c:71:6:decodeEnvironmentConfigs	33
-../Application/User/Core/Environment.c:312:6:decodeTemperatureConfigs	25
-../Application/User/Core/Environment.c:496:6:decodeHumidityConfigs	25
+../Application/User/Core/Environment.c:71:6:decodeEnvironmentConfigs	34
+../Application/User/Core/Environment.c:312:6:decodeTemperatureConfigs	26
+../Application/User/Core/Environment.c:496:6:decodeHumidityConfigs	26
 ../Application/User/Core/Environment.c:680:7:getEnvironmentConfigStr	1
 ../Application/User/Core/Environment.c:703:7:getTemperatureConfigStr	1
 ../Application/User/Core/Environment.c:726:7:getHumidityConfigStr	1

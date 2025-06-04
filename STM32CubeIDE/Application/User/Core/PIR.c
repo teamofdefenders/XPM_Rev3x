@@ -630,4 +630,41 @@ uint16_t getPirMutePeriod(void)
 	return pirData2.coolDown;
 }
 
+uint8_t PIRConfirmMotionFilter (void)
+{
+	uint8_t validMotion = 0;
+	uint16_t numOfPolls = 0;
+	uint8_t nearMotionPollThreshold = 0;
+	uint8_t confirmMotionPollThreshold = 0;
+	uint8_t highPollCount = 0;
+	numOfPolls = nightTimeParam.Motion_Confirm_Window/100;
+	nearMotionPollThreshold = (nightTimeParam.Near_Motion_Threshhold*numOfPolls)/100;
+	confirmMotionPollThreshold = (nightTimeParam.Motion_Threshhold*numOfPolls)/100;
+
+	for (uint8_t pollCount = 0; pollCount < numOfPolls; pollCount++)
+	{
+		if (!Is_Pin_Low( PIR_Motion_GPIO_Port , PIR_Motion_Pin ))
+				{
+			highPollCount ++;
+			PRINTF("HHH\r\n");
+				}
+		else
+				{
+			PRINTF("LLL\r\n");
+				}
+		HAL_Delay(100);
+	}
+	if (highPollCount >= confirmMotionPollThreshold)
+	{
+		validMotion = 1; //confirmed motion
+	}
+	else if (highPollCount >= nearMotionPollThreshold)
+	{
+		validMotion = 2; //near motion
+	}
+
+	return validMotion;
+}
+
+
 /*********************   END OF FILE     ***************/

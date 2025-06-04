@@ -1080,6 +1080,10 @@ bool checkNextTime( TIME_DATE_TYPE check, TIME_DATE_TYPE next );
 uint32_t getTimeDifference( TIME_DATE_TYPE check, TIME_DATE_TYPE next );
 uint16_t getTimeFromNow( TIME_DATE_TYPE stop );
 
+
+//PIR.c file
+uint8_t PIRConfirmMotionFilter (void);
+
 //  *****************************
 
 void SystemClock_Config(void);
