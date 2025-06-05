@@ -92,6 +92,7 @@ CAMERA_PARAMETER_TYPE cameraParameters;
 MACHINE_STATE_TYPE deviceState = IDLE;
 
 uint16_t missingPagesCount = 0;
+uint8_t filterResult = 0;
 
 bool isModemPowered = false;
 bool NightConfirmed = false;
@@ -673,7 +674,7 @@ void Update_State ( MEM_PTR *Data_Ptr )
 
 			if(!firstTimeBoot && pIRTriggered)
 			{
-				uint8_t filterResult = PIRConfirmMotionFilter();
+				filterResult = PIRConfirmMotionFilter();
 				PRINTF("PIR FILTER RESULT IS: %d\r\n", filterResult);
 			}
 
@@ -715,7 +716,7 @@ void Update_State ( MEM_PTR *Data_Ptr )
 				if (!tradeshow)
 				{
 					PRINTF("Daytime PIR Trigger\r\n");
-					if (checkFunctionActive(PIR_MODULE))  // Make sure Daytime is active
+					if (checkFunctionActive(PIR_MODULE) && (filterResult == 1))  // Make sure Daytime is active
 					{
 						if (!MuteInit && pIRTriggered)
 						{
