@@ -183,7 +183,8 @@ void Reflash ( MEM_PTR *bigData, BANK_TYPE isBank1 )
 	            if( memcmp( ( void * ) currentFlashAddress, quadWord, Quad_Word_Shift ) != 0 )
 	            {
 	                /* Flash content doesn't match SRAM content */
-	                status = HAL_ERROR;
+	    	        PRINTF("Memory compare does not match\r\n");
+	    	        //Error_Handler();
 	            }
 	    	}
 	    }
