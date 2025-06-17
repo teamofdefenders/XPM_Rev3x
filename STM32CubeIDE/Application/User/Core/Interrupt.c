@@ -32,6 +32,7 @@ extern bool movementstop;
 extern uint16_t wakeupState;
 extern bool accelMuteInit;
 extern bool MuteInit;
+extern bool pirBlackout;
 
 
 PIR_PARAMETER_TYPE pirData;
@@ -358,6 +359,17 @@ void HAL_RTCEx_WakeUpTimerEventCallback(RTC_HandleTypeDef *hrtc)
 		}
 
 	}
+
+	else if (wakeupState == blackout_wu_enabled)
+	{
+		memory.State |= WAKE_STATE;
+		if (memory.State & UPDATE_SERVER)
+		{
+			memory.State ^= UPDATE_SERVER;
+		}
+		pirBlackout = false;
+
+	}
 	else if (wakeupState == hb_img_pair)
 	{
 		memory.State |= WAKE_STATE + HB_UPDT  + GPS_UPDT + PIC_UPDT + PIC_SEND + PIR_END;
@@ -389,6 +401,17 @@ void HAL_RTCEx_WakeUpTimerEventCallback(RTC_HandleTypeDef *hrtc)
 
 
 	}
+
+	else if (wakeupState == hb_blackout_pair)
+	{
+		memory.State |= WAKE_STATE + HB_UPDT;
+		if (memory.State & UPDATE_SERVER)
+		{
+			memory.State ^= UPDATE_SERVER;
+		}
+		pirBlackout = false;
+
+	}
 	else if (wakeupState == img_acc_pair)
 	{
 		memory.State |= WAKE_STATE + HB_UPDT + MOVEMENT_UPDT + GPS_UPDT + PIC_UPDT + PIC_SEND + PIR_END;
@@ -412,6 +435,49 @@ void HAL_RTCEx_WakeUpTimerEventCallback(RTC_HandleTypeDef *hrtc)
 		MuteInit = false;
 
 	}
+
+	else if (wakeupState == img_blackout_pair)
+	{
+		memory.State |= WAKE_STATE + PIC_UPDT + PIC_SEND;
+		if (memory.State & UPDATE_SERVER)
+		{
+			memory.State ^= UPDATE_SERVER;
+		}
+
+		MuteInit = false;
+		pirBlackout = false;
+
+
+	}
+
+	else if (wakeupState == acc_blackout_pair)
+	{
+		memory.State |= WAKE_STATE + MOVEMENT_UPDT + GPS_UPDT;
+		if (memory.State & UPDATE_SERVER)
+		{
+			memory.State ^= UPDATE_SERVER;
+		}
+
+		movementstop = true;
+		accelMuteInit = false;
+		pirBlackout = false;
+
+
+	}
+
+	else if (wakeupState == pGPS_blackout_pair)
+	{
+		memory.State |= WAKE_STATE + GPS_UPDT;
+		if (memory.State & UPDATE_SERVER)
+		{
+			memory.State ^= UPDATE_SERVER;
+		}
+
+		pirBlackout = false;
+
+
+	}
+
 	else if (wakeupState == hb_img_acc_pair)
 	{
 		memory.State |= WAKE_STATE + HB_UPDT + MOVEMENT_UPDT + GPS_UPDT + PIC_UPDT + PIC_SEND + PIR_END;
@@ -433,6 +499,101 @@ void HAL_RTCEx_WakeUpTimerEventCallback(RTC_HandleTypeDef *hrtc)
 		}
 
 		MuteInit = false;
+
+	}
+
+	else if (wakeupState == hb_img_blackout_wu_enabled)
+	{
+		memory.State |= WAKE_STATE + HB_UPDT + PIC_UPDT + PIC_SEND;
+		if (memory.State & UPDATE_SERVER)
+		{
+			memory.State ^= UPDATE_SERVER;
+		}
+
+		MuteInit = false;
+		pirBlackout = false;
+
+	}
+
+	else if (wakeupState == hb_acc_blackout_wu_enabled)
+	{
+		memory.State |= WAKE_STATE + HB_UPDT + MOVEMENT_UPDT + GPS_UPDT;
+		if (memory.State & UPDATE_SERVER)
+		{
+			memory.State ^= UPDATE_SERVER;
+		}
+
+		movementstop = true;
+		accelMuteInit = false;
+		pirBlackout = false;
+
+	}
+
+	else if (wakeupState == hb_pGPS_blackout_wu_enabled)
+	{
+		memory.State |= WAKE_STATE + HB_UPDT + GPS_UPDT;
+		if (memory.State & UPDATE_SERVER)
+		{
+			memory.State ^= UPDATE_SERVER;
+		}
+
+		pirBlackout = false;
+
+	}
+
+	else if (wakeupState == img_acc_blackout_wu_enabled)
+	{
+		memory.State |= WAKE_STATE + PIC_UPDT + PIC_SEND + MOVEMENT_UPDT + GPS_UPDT;
+		if (memory.State & UPDATE_SERVER)
+		{
+			memory.State ^= UPDATE_SERVER;
+		}
+
+		MuteInit = false;
+		movementstop = true;
+		accelMuteInit = false;
+		pirBlackout = false;
+
+	}
+
+	else if (wakeupState == img_pGPS_blackout_wu_enabled)
+	{
+		memory.State |= WAKE_STATE + PIC_UPDT + PIC_SEND + GPS_UPDT;
+		if (memory.State & UPDATE_SERVER)
+		{
+			memory.State ^= UPDATE_SERVER;
+		}
+
+		MuteInit = false;
+		pirBlackout = false;
+
+	}
+
+	else if (wakeupState == hb_img_acc_blackout_wu_enabled)
+	{
+		memory.State |= WAKE_STATE + HB_UPDT + PIC_UPDT + PIC_SEND + MOVEMENT_UPDT + GPS_UPDT;
+		if (memory.State & UPDATE_SERVER)
+		{
+			memory.State ^= UPDATE_SERVER;
+		}
+
+		MuteInit = false;
+		movementstop = true;
+		accelMuteInit = false;
+		pirBlackout = false;
+
+	}
+
+	else if (wakeupState == hb_img_pGPS_blackout_wu_enabled)
+	{
+		memory.State |= WAKE_STATE + HB_UPDT + PIC_UPDT + PIC_SEND + GPS_UPDT;
+		if (memory.State & UPDATE_SERVER)
+		{
+			memory.State ^= UPDATE_SERVER;
+		}
+
+		MuteInit = false;
+		pirBlackout = false;
 
 	}
 

@@ -674,5 +674,11 @@ uint8_t PIRConfirmMotionFilter (void)
 	return validMotion;
 }
 
+uint16_t getPIRBlackoutPeriod(void)
+{
+	return nightTimeParam.Motion_Blackout ;
+}
+
+
 
 /*********************   END OF FILE     ***************/

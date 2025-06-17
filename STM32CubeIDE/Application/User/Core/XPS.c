@@ -275,7 +275,7 @@ void readBank(MEM_PTR *Data_Ptr )
 	}
 }
 
-uint8_t getMode(HW_MODULE_TYPE hwSubModule)
+uint8_t  getMode (HW_MODULE_TYPE hwSubModule)
 {
 	uint8_t mode = 0;
 	switch (hwSubModule)

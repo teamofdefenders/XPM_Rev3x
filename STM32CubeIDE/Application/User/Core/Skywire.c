@@ -259,7 +259,29 @@ void CELL_Init(MEM_PTR *Data_Ptr)
 	Clear_Memory(Data_Ptr);
 	Command = OPEN;
 	CELL_COMMAND(Data_Ptr);
-	cellResponseCheck(Data_Ptr);
+	if (cellResponseCheck(Data_Ptr) != 1)
+	{
+		Clear_Memory(Data_Ptr);
+
+		Command = activatePDP;
+		CELL_COMMAND(Data_Ptr);
+		if (cellResponseCheck(Data_Ptr) != 1)
+		{
+			Clear_Memory(Data_Ptr);
+			Command = PDP_POPULATE;
+			CELL_COMMAND(Data_Ptr);
+
+			Clear_Memory(Data_Ptr);
+			Command = REENABLEQI;
+			CELL_COMMAND(Data_Ptr);
+			cellResponseCheck(Data_Ptr);
+
+			Clear_Memory(Data_Ptr);
+			Command = OPEN;
+			cellResponseCheck(Data_Ptr);
+		}
+
+	}
 	Clear_Memory(Data_Ptr);
 	Command = CONNECT;
 	CELL_COMMAND(Data_Ptr);
@@ -277,10 +299,10 @@ void CELL_Init(MEM_PTR *Data_Ptr)
 			CELL_Set_PDP ( PDP_NOT_SET );
 			CELL_Init(Data_Ptr);
 		}
-		else
-		{
-			buzzerTone();
-		}
+//		else
+//		{
+//			buzzerTone();
+//		}
 	}
 	retry = false;
 	InitCounter = 0;
@@ -414,9 +436,12 @@ void CELL_reInit(MEM_PTR *Data_Ptr)     //REFRESH FUNCTION WIP
 	if (cellResponseCheck(Data_Ptr) != 1)
 	{
 		Clear_Memory(Data_Ptr);
+		Command = PDP_POPULATE;
+		CELL_COMMAND(Data_Ptr);
 
+		Clear_Memory(Data_Ptr);
 		Command = REENABLEQI;
-		CELL_COMMAND( Data_Ptr );
+		CELL_COMMAND(Data_Ptr);
 		cellResponseCheck(Data_Ptr);
 	}
 
@@ -424,10 +449,34 @@ void CELL_reInit(MEM_PTR *Data_Ptr)     //REFRESH FUNCTION WIP
 
 	Command = OPEN;
 	CELL_COMMAND(Data_Ptr);
-
 	if (cellResponseCheck(Data_Ptr) != 1)
 	{
-		PRINTF("FAILURE FAILURE FAILURE\r\n");
+		Clear_Memory(Data_Ptr);
+
+		Command = activatePDP;
+		CELL_COMMAND(Data_Ptr);
+		if (cellResponseCheck(Data_Ptr) != 1)
+		{
+			Clear_Memory(Data_Ptr);
+			Command = PDP_POPULATE;
+			CELL_COMMAND(Data_Ptr);
+
+			Clear_Memory(Data_Ptr);
+			Command = REENABLEQI;
+			CELL_COMMAND(Data_Ptr);
+			cellResponseCheck(Data_Ptr);
+
+			Clear_Memory(Data_Ptr);
+			Command = OPEN;
+			cellResponseCheck(Data_Ptr);
+		}
+		else if (cellResponseCheck(Data_Ptr) == 1)
+		{
+			Clear_Memory(Data_Ptr);
+			Command = OPEN;
+			cellResponseCheck(Data_Ptr);
+		}
+
 	}
 
 	Clear_Memory(Data_Ptr);
@@ -462,10 +511,10 @@ void CELL_reInit(MEM_PTR *Data_Ptr)     //REFRESH FUNCTION WIP
 			InitCounter ++;
 			CELL_reInit(Data_Ptr);
 		}
-		else
-		{
-			buzzerTone();
-		}
+//		else
+//		{
+//			buzzerTone();
+//		}
 	}
 
 	retry = false;
@@ -2820,6 +2869,7 @@ void CELL_COMMAND(MEM_PTR *Data_Ptr)
 		CELL_MSG(Data_Ptr, false);
 		checkCellOk(Data_Ptr, CELL_CLIENT_KEY_ERR);
 		return;
+
 	default:
 		Cell_State = CELL_TYPE_PARAM_ERR;
 		break;
@@ -3941,14 +3991,7 @@ uint8_t cellResponseCheck (MEM_PTR *Data_Ptr)
 			{
 				isOK = 3;
 				PRINTF("PDP not Active, Status code is %d\r\n",isOK);
-				Command = activatePDP;
-				CELL_COMMAND(Data_Ptr);
-				if (cellResponseCheck(Data_Ptr) != 1)
-				{
 
-					Command = REENABLEQI;
-					CELL_COMMAND( Data_Ptr );
-				}
 			}
 		}
 
@@ -4031,8 +4074,6 @@ uint8_t cellResponseCheck (MEM_PTR *Data_Ptr)
 			isOK = 3;
 			PRINTF("PDP not Active, Status code is %d\r\n",isOK);
 
-			Command = PDP_POPULATE;
-			CELL_COMMAND(Data_Ptr);
 		}
 		else
 		{

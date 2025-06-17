@@ -443,31 +443,29 @@ typedef struct
 
 typedef enum
 {
-	hb_img_acc_overlap = 0,
-	hb_acc_img_overlap,
-	img_hb_acc_overlap,
-	img_acc_hb_overlap,
-	acc_hb_img_overlap,
-	acc_img_hb_overlap,
-	hb_img_overlap,
-	hb_acc_overlap,
-	img_hb_overlap,
-	img_acc_overlap,
-	acc_hb_overlap,
-	acc_img_overlap,
-	hb_img_pair,
-	hb_acc_pair,
-	img_acc_pair,
-	hb_img_acc_pair,
-	hb_pGPS_pair,
-	img_pGPS_pair,
-	hb_img_pGPS_pair,
-	hb_acc_pGPS_pair,
-	img_acc_pGPS_pair,
-	hb_wu_enabled,
+	hb_wu_enabled = 1,
 	acc_wu_enabled,
 	img_wu_enabled,
-	pGPS_wu_enabled
+	pGPS_wu_enabled,
+	blackout_wu_enabled,
+	hb_img_pair,
+	hb_acc_pair,
+	hb_pGPS_pair,
+	hb_blackout_pair,
+	img_acc_pair,
+	img_pGPS_pair,
+	img_blackout_pair,
+	acc_blackout_pair,
+	pGPS_blackout_pair,
+	hb_img_acc_pair,
+	hb_img_pGPS_pair,
+	hb_img_blackout_wu_enabled,
+	hb_acc_blackout_wu_enabled,
+	hb_pGPS_blackout_wu_enabled,
+	img_acc_blackout_wu_enabled,
+	img_pGPS_blackout_wu_enabled,
+	hb_img_acc_blackout_wu_enabled,
+	hb_img_pGPS_blackout_wu_enabled
 
 } WAKEUP_STATE;
 
@@ -950,6 +948,8 @@ void startOTAProcess(MEM_PTR *Data_Ptr);
 void cameraDownlinkHandler(MEM_PTR *Data_Ptr);
 bool decodeImageAck(MEM_PTR *Data_Ptr, uint8_t index);
 bool decodeHBConfigs(MEM_PTR *Data_Ptr, uint8_t *mqttMsg);
+uint16_t minValue5 (uint16_t HB, uint16_t PIR, uint16_t ACC, uint16_t MUTEGPS, uint16_t BLKOUT);
+
 
 //  **********   End of OTA section   *****************
 
@@ -1012,8 +1012,6 @@ bool checkCellandFix(MEM_PTR *Data_Ptr);
 
 void buzzerTone(void);
 void restartModem (void);
-uint16_t minValue4 (uint16_t HB, uint16_t PIR, uint16_t ACC, uint16_t MUTEGPS);
-//End Functions.c
 
 // skywire.c file
 void fakeMissing(OTA_FILE_TYPE *OTAData );
@@ -1083,6 +1081,8 @@ uint16_t getTimeFromNow( TIME_DATE_TYPE stop );
 
 //PIR.c file
 uint8_t PIRConfirmMotionFilter (void);
+uint16_t getPIRBlackoutPeriod(void);
+
 
 //  *****************************
 

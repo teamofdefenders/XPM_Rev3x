@@ -122,7 +122,7 @@ uint16_t tempReadRegister(TEM_I2C_Command readReg)
 	HAL_StatusTypeDef ret;
 	uint8_t reg;
 	uint8_t temp_data[TEMP_DATA_SIZE];
-	uint16_t regval;
+	uint16_t regval = 0;
 
 	switch(tempDevice.partNumber)
 	{

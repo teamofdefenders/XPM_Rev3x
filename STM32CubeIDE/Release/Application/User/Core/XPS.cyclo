@@ -5,7 +5,7 @@
 ../Application/User/Core/XPS.c:149:6:getOtaData	2
 ../Application/User/Core/XPS.c:228:6:getDataValid	1
 ../Application/User/Core/XPS.c:234:6:populateDefaults	1
-../Application/User/Core/XPS.c:278:9:getMode	9
+../Application/User/Core/XPS.c:278:10:getMode	9
 ../Application/User/Core/XPS.c:320:6:XPS_paramRetrieve	2
 ../Application/User/Core/XPS.c:444:6:XPS_paramStore	1
 ../Application/User/Core/XPS.c:569:6:XPS_Picture_Save	1

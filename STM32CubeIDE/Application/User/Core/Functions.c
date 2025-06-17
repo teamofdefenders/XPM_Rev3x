@@ -86,6 +86,8 @@ TIME_DATE_TYPE checkAccelMute;
 TIME_DATE_TYPE nextMute;
 TIME_DATE_TYPE nextAccelMute;
 TIME_DATE_TYPE mutePeriodGPS;
+TIME_DATE_TYPE blackoutPeriod;
+
 ACCELERATION_PARAM_TYPE accellerationParameters;
 CAMERA_PARAMETER_TYPE cameraParameters;
 
@@ -114,6 +116,8 @@ bool accelTriggered = false;
 bool accelMuteActive = false;
 bool wakeupOverlap = false;
 bool cellInitialized = false;
+
+bool pirBlackout = false;
 
 bool hbTimeChanged = false;
 STRING_CONTAINER configErrContainer;
@@ -534,6 +538,9 @@ void Update_State ( MEM_PTR *Data_Ptr )
 
 			if (!latencyMin)
 			{
+				CELL_Set_Command (DISCONNECT);
+				CELL_COMMAND(Data_Ptr);
+
 				HAL_GPIO_WritePin ( MEM_CS_GPIO_Port , MEM_CS_Pin , GPIO_PIN_SET );    //for simulated battery power operation
 
 				HAL_GPIO_WritePin ( Cell_Enable_GPIO_Port , Cell_Enable_Pin , GPIO_PIN_RESET );    //for simulated battery power operation
@@ -570,15 +577,17 @@ void Update_State ( MEM_PTR *Data_Ptr )
 					uint16_t PIRwakeUp = getTimeFromNow(nextMute);
 					uint16_t AccwakeUp = getTimeFromNow(nextAccelMute);
 					uint16_t PeriodicGPSWakeup = getTimeFromNow(mutePeriodGPS);
+					uint16_t BlackoutWakeup = getTimeFromNow(blackoutPeriod);
 
 
 					PRINTF("Heartbeat timer is %u\r\n" , HBwakeUp );
 					PRINTF("PIR timer is %u\r\n" , PIRwakeUp );
+					PRINTF("Blackout timer is %u\r\n" , BlackoutWakeup );
 					PRINTF("pGPS timer is %u\r\n" , PeriodicGPSWakeup );
 					PRINTF("Accelerometer timer is %u\r\n\r\n\r\n" , AccwakeUp );
 
 
-					wakeUp = minValue4(HBwakeUp,PIRwakeUp,AccwakeUp,PeriodicGPSWakeup);
+					wakeUp = minValue5(HBwakeUp,PIRwakeUp,AccwakeUp,PeriodicGPSWakeup, BlackoutWakeup);
 					PRINTF("Wakeup timer is %u\r\n" , wakeUp );
 
 					//					PRINTF("Triggered by accelerometer, Wakeup timer is %u\r\n" , wakeUp);
@@ -610,7 +619,7 @@ void Update_State ( MEM_PTR *Data_Ptr )
 
 				//HAL_Delay(3000);
 
-				if(getMode(PIR_MODULE) != 0)
+				if((getMode(PIR_MODULE) != 0) && (!pirBlackout))
 				{
 					// Enable PIR
 					PRINTF("Enable PIR wakeup, PIR mode is %d\r\n", getMode(PIR_MODULE));
@@ -690,7 +699,9 @@ void Update_State ( MEM_PTR *Data_Ptr )
 				HAL_GPIO_WritePin ( Buzzer_GPIO_Port , Buzzer_Pin , GPIO_PIN_RESET );          //for simulated battery power operation
 
 				//waking up for a heartbeat, we call this calculatenexttime immediately here to minimize time drift
-				if (timerTriggered && (wakeupState == hb_wu_enabled))
+				if (timerTriggered && ((wakeupState == hb_wu_enabled) || (wakeupState == hb_img_pair) ||
+						(wakeupState == hb_acc_pair) || (wakeupState == hb_pGPS_pair) ||
+						(wakeupState == hb_img_acc_pair) || (wakeupState == hb_img_pGPS_pair)))
 				{
 					PRINTF("Calculating next HB time, HB interval is %u\r\n", Data_Ptr->heartBeatData.hbInterval);
 					calculateNextTime( &nextHB, Data_Ptr->heartBeatData.hbInterval );
@@ -715,47 +726,42 @@ void Update_State ( MEM_PTR *Data_Ptr )
 				NightConfirmed = false;
 				if (!tradeshow)
 				{
-					PRINTF("Daytime PIR Trigger\r\n");
-					if (checkFunctionActive(PIR_MODULE) && (filterResult == 1))  // Make sure Daytime is active
+					if (pIRTriggered && (checkFunctionActive(PIR_MODULE)) && (filterResult == 1))
 					{
-						if (!MuteInit && pIRTriggered)
+						if (!MuteInit)
 						{
-							PRINTF("Setting 1 Picture Muting period of %d seconds\r\n", getPirMutePeriod());
+							PRINTF("Setting Muting period of %d seconds\r\n", getPirMutePeriod());
 							calculateNextTime( &nextMute, (uint32_t)getPirMutePeriod() );
 							MuteInit = true;
 							firstMotion = true;
 						}
 
-						if ((!checkNextTime(checkMute, nextMute)) && (firstMotion == false) && (pIRTriggered))
+						if ((!checkNextTime(checkMute, nextMute)) && (firstMotion == false) && (MuteInit))
 						{
 							PRINTF("WITHIN MUTE PERIOD, Powering Down\r\n");
 							powerDownDeviceForSleep();
-							if (pIRTriggered)
+							clearPirInterreptUpdateStates();
+							//store event
+							PRINTF("Setting Muting period of %d seconds\r\n", getPirMutePeriod());
+							calculateNextTime( &nextMute, (uint32_t)getPirMutePeriod() );
+
+							if (getPIRBlackoutPeriod() != 0)
 							{
-								clearPirInterreptUpdateStates();
-								PRINTF("Setting 2 Picture Muting period of %d seconds\r\n", getPirMutePeriod());
-								calculateNextTime( &nextMute, (uint32_t)getPirMutePeriod() );
+							calculateNextTime( &blackoutPeriod, getPIRBlackoutPeriod());
+							pirBlackout = true;
 							}
 						}
+
 						else
 						{
-							if(pIRTriggered)
-							{
-								PRINTF("Starting MUTE period of %d seconds\r\n", getPirMutePeriod());
-								calculateNextTime( &nextMute, (uint32_t)getPirMutePeriod());
 								firstMotion = false;
-								NightConfirmed = true;    //added
-							}
 						}
 					}
-					else // Daytime not active, print message and power down
+					else if ((pIRTriggered) && (filterResult != 1))
 					{
-						PRINTF("Picture Mode not Active, Powering Down\r\n");
+//						Store event
 						powerDownDeviceForSleep();
-						if (pIRTriggered)
-						{
-							clearPirInterreptUpdateStates();
-						}
+						clearPirInterreptUpdateStates();
 					}
 				}
 
@@ -765,7 +771,7 @@ void Update_State ( MEM_PTR *Data_Ptr )
 					// Enter camera power off
 					cameraPowerControl (false);
 
-					if (!accelMuteInit && accelTriggered)
+					if (!accelMuteInit)
 					{
 						//use parameter instead of hardcoded value
 						calculateNextTime( &nextAccelMute, getAccelMutePeriod() );
@@ -774,7 +780,7 @@ void Update_State ( MEM_PTR *Data_Ptr )
 						accelMuteInit = true;
 						firstMovement = true;
 					}
-					if ((!checkNextTime(checkAccelMute, nextAccelMute)) && (firstMovement == false) && (accelTriggered))
+					if ((!checkNextTime(checkAccelMute, nextAccelMute)) && (firstMovement == false) && (accelMuteInit))
 					{
 						PRINTF("WITHIN ACCELEROMETER MUTE PERIOD, Powering Down\r\n");
 						powerDownDeviceForSleep();
@@ -784,12 +790,7 @@ void Update_State ( MEM_PTR *Data_Ptr )
 					}
 					else
 					{
-						if(accelTriggered)
-						{
-							PRINTF("Starting ACCELEROMETER MUTE period of %d seconds\r\n", getAccelMutePeriod());
-							calculateNextTime( &nextAccelMute, getAccelMutePeriod());
 							firstMovement = false;
-						}
 					}
 				}
 			}
@@ -805,26 +806,6 @@ void Update_State ( MEM_PTR *Data_Ptr )
 			Log_Single ( LOG_SLEEP_START );
 #endif // Log_Level_0
 
-			//	Disable_Extra_Power ( Data_Ptr );
-
-			//	while ( !( _State & WAKE_STATE ) )
-			//	{
-			//		Refresh_Watchdog;
-			//
-			//		if ( _State & GPIO_UPDT )
-			//		{
-			//			_State ^= GPIO_UPDT;
-			//
-			//			_State |= WAKE_STATE;
-			//		}
-			//
-			//		HAL_PWREx_EnableUltraLowPowerMode ();
-			//		//	HAL_PWREx_ConfigSRDDomain ( PWR_SRD_DOMAIN_STOP );
-			//		//	HAL_PWREx_EnterSTOP1Mode ( PWR_SLEEPENTRY_WFI );
-			//		//	HAL_PWREx_EnterSTOP2Mode ( PWR_SLEEPENTRY_WFE );
-			//		HAL_PWREx_EnterSTOP3Mode ( PWR_SLEEPENTRY_WFE );
-			//		//	HAL_PWREx_EnterSHUTDOWNMode ();
-			//	}
 
 #ifdef Log_Level_0
 			Log_Single ( LOG_SLEEP_END );
@@ -910,98 +891,6 @@ void Update_State ( MEM_PTR *Data_Ptr )
 			XPS_paramStore ( Data_Ptr );
 		}
 
-		//		if ( _State & ACCEL_UPDT )
-		//		{
-		//			_State ^= ACCEL_UPDT;
-		//
-		//#ifdef ACCELERATION_SENSOR
-		//			if ( _X_Axis != Default_X_Axis )
-		//			{
-		//				for ( _X_Axis = 0; _X_Axis == 0; )
-		//				{
-		//					ACC_Set_Command ( ACCELERATION );
-		//					ACC_COMMAND ( Data_Ptr );
-		//				}
-		//			}
-		//
-		//			if ( _X_Axis == Default_X_Axis || ACC_Get_State () != ACC_OK )
-		//				_Init_Flags ^= ACCEL_INIT;
-		//
-		//			/*
-		//			#ifdef SKYWIRE_MODEM
-		//			if ( _State & CELL_UPDT )
-		//			{
-		//				CELL_ACCEUPDT ( Data_Ptr );
-		//			}
-		//
-		//			#endif // SKYWIRE_MODEM
-		//			 */
-		//#endif  //ACCELERATION_SENSOR
-		//		}
-
-//		if ( _State & TEMP_UPDT )
-//		{
-//			PRINTF("Update_State includes WAKE_STATE and TEMP_UPDT\r\n");
-//			_State ^= TEMP_UPDT;
-//
-//#ifdef TEMPERATURE_SENSOR
-//			if ( _Temperature != Default_Temperature ) //   _Temperature = 0;
-//			{
-//				_Setting |= AVOID_MSG_SPAM;
-//				for ( _Temperature = 0; _Temperature == 0;)
-//				{
-//					tempReadRegister(HDC2080_TEMP_LOW, 2);
-//				}
-//				_Setting ^= AVOID_MSG_SPAM;
-//			}
-//
-////			if (_Temperature == Default_Temperature || TEM_Get_State () != TEM_OK)
-//				_Init_Flags ^= TEMP_INIT;
-//
-////#ifdef SKYWIRE_MODEM
-////	if (_State & CELL_UPDT)
-////{
-////	CELL_TEMPUPDT ( Data_Ptr );
-////}
-////#endif  //SKYWIRE_MODEM
-//
-//#endif  //TEMPERATURE_SENSOR
-//		}
-
-//		if ( _State & HUMD_UPDT )
-//		{
-//			PRINTF("Update_State includes WAKE_STATE and HUMD_UPDT\r\n");
-//			_State ^= HUMD_UPDT;
-//
-//#ifdef TEMPERATURE_SENSOR
-//			if ( _Humidity != Default_Humidity )
-//			{
-//				_Setting |= AVOID_MSG_SPAM;
-//				int HumTryCounter = 0;
-//				do{
-//
-//					HDC2080_TEMP_LOW
-//					HumTryCounter++;
-//				}
-//				while ((HumTryCounter <= 10) & (_Humidity < 1000));
-//				HumTryCounter = 0;
-//				_Setting ^= AVOID_MSG_SPAM;
-//			}
-//
-////			if ( _Humidity == Default_Humidity || TEM_Get_State () != TEM_OK )
-//				_Init_Flags ^= TEMP_INIT;
-//			//
-//			//			#ifdef SKYWIRE_MODEM
-//			//			if (_State & CELL_UPDT)
-//			//			{
-//			//				CELL_HUMDUPDT ( Data_Ptr );
-//			//			}
-//			//
-//			//			#endif //SKYWIRE_MODEM
-//
-//#endif  //TEMPERATURE_SENSOR
-//		}
-
 		if ( _State & PIC_UPDT )
 		{
 			_State ^= PIC_UPDT;
@@ -1074,7 +963,11 @@ void Update_State ( MEM_PTR *Data_Ptr )
 				selectDownlinkOperation(Data_Ptr, IDLE);
 			}
 			CELL_PIRUPDT ( Data_Ptr, true );
-
+			if (getPIRBlackoutPeriod() != 0)
+			{
+			calculateNextTime( &blackoutPeriod, getPIRBlackoutPeriod());
+			pirBlackout = true;
+			}
 		}
 
 		if ( _State & PIC_SEND )
@@ -4286,13 +4179,16 @@ void restartModem (void)
 	HAL_Delay(6000);
 }
 
-uint16_t minValue4 (uint16_t HB, uint16_t PIR, uint16_t ACC, uint16_t MUTEGPS)
-{
+uint16_t minValue5 (uint16_t HB, uint16_t PIR, uint16_t ACC, uint16_t MUTEGPS, uint16_t BLKOUT)
+ {
 	uint16_t min = 0;
 
-	if ( MuteInit && accelMuteInit )
+	if (MuteInit && accelMuteInit && pirBlackout)
+
 	{
-		if ((HB < PIR) && (HB < ACC) && (HB < MUTEGPS))
+
+		if ((HB < PIR) && (HB < ACC) && (HB < MUTEGPS) && (HB < BLKOUT))
+
 		{
 
 			wakeupState = hb_wu_enabled;
@@ -4300,181 +4196,628 @@ uint16_t minValue4 (uint16_t HB, uint16_t PIR, uint16_t ACC, uint16_t MUTEGPS)
 			PRINTF("WakeupState is hb_wu_enabled\r\n");
 
 		}
-		else if ((PIR < HB) && (PIR < ACC) && (PIR < MUTEGPS))
+
+		else if ((PIR < HB) && (PIR < ACC) && (PIR < MUTEGPS) && (PIR < BLKOUT))
+
 		{
 			wakeupState = img_wu_enabled;
 			min = PIR;
 			PRINTF("WakeupState is img_wu_enabled\r\n");
-
 		}
-		else if ((ACC < HB) && (ACC < PIR) && (ACC < MUTEGPS))
+
+		else if ((ACC < HB) && (ACC < PIR) && (ACC < MUTEGPS) && (ACC < BLKOUT))
+
 		{
 			wakeupState = acc_wu_enabled;
 			min = ACC;
 			PRINTF("WakeupState is acc_wu_enabled\r\n");
-
 		}
-		else if ((MUTEGPS < HB) && (MUTEGPS < PIR) && (MUTEGPS < ACC))
+
+		else if ((MUTEGPS < HB) && (MUTEGPS < PIR) && (MUTEGPS < ACC) && (MUTEGPS < BLKOUT))
+
 		{
 			wakeupState = pGPS_wu_enabled;
 			min = MUTEGPS;
 			PRINTF("WakeupState is pGPS_wu_enabled\r\n");
-
 		}
 
-		else if ((HB == PIR) && (HB == ACC) && (HB == MUTEGPS))
+		else if ((BLKOUT < HB) && (BLKOUT < PIR) && (BLKOUT < ACC) && (BLKOUT < MUTEGPS))
+
 		{
-			wakeupState = hb_img_acc_pair;
-			min = HB;
-			PRINTF("WakeupState is hb_img_acc_pair\r\n");
-
+			wakeupState = blackout_wu_enabled;
+			min = BLKOUT;
+			PRINTF("WakeupState is blackout_wu_enabled\r\n");
 		}
 
-		else if ((HB == PIR) && (HB = ACC) && (HB < MUTEGPS))
-		{
-			wakeupState = hb_img_acc_pair;
-			min = HB;
-			PRINTF("WakeupState is hb_img_acc_pair\r\n");
+		else if ((HB == PIR) && (HB < ACC) && (HB < MUTEGPS) && (HB < BLKOUT))
 
-		}
-
-		else if ((HB == PIR) && (HB = MUTEGPS) && (HB < ACC))
-		{
-			wakeupState = hb_img_pGPS_pair;
-			min = HB;
-			PRINTF("WakeupState is hb_img_pGPS_pair\r\n");
-
-		}
-		else if ((HB == ACC) && (HB = MUTEGPS) && (HB < PIR))
-		{
-			wakeupState = hb_acc_pair;
-			min = HB;
-			PRINTF("WakeupState is hb_acc_pair\r\n");
-
-		}
-
-		else if ((PIR == ACC) && (PIR = MUTEGPS) && (PIR < HB))
-		{
-			wakeupState = img_acc_pair;
-			min = PIR;
-			PRINTF("WakeupState is img_acc_pair\r\n");
-
-		}
-
-
-
-		else if ((HB == PIR) && (HB < ACC) && (HB < MUTEGPS))
 		{
 			wakeupState = hb_img_pair;
 			min = HB;
 			PRINTF("WakeupState is hb_img_pair\r\n");
-
 		}
-		else if ((HB == ACC) && (HB < PIR) && (HB < MUTEGPS))
+
+		else if ((HB == ACC) && (HB < PIR) && (HB < MUTEGPS) && (HB < BLKOUT))
+
 		{
 			wakeupState = hb_acc_pair;
 			min = HB;
 			PRINTF("WakeupState is hb_acc_pair\r\n");
-
 		}
-		else if ((HB == MUTEGPS) && (HB < PIR) && (HB < ACC))
+
+		else if ((HB == MUTEGPS) && (HB < PIR) && (HB < ACC) && (HB < BLKOUT))
+
 		{
 			wakeupState = hb_pGPS_pair;
 			min = HB;
 			PRINTF("WakeupState is hb_pGPS_pair\r\n");
-
 		}
-		else if ((PIR == ACC) && (PIR < HB) && (PIR < MUTEGPS))
+
+		else if ((HB == BLKOUT) && (HB < PIR) && (HB < ACC) && (HB < MUTEGPS))
+
+		{
+			wakeupState = hb_blackout_pair;
+			min = HB;
+			PRINTF("WakeupState is hb_blackout_pair\r\n");
+		}
+
+		else if ((PIR == ACC) && (PIR < HB) && (PIR < MUTEGPS) && (PIR < BLKOUT))
+
 		{
 			wakeupState = img_acc_pair;
 			min = PIR;
 			PRINTF("WakeupState is img_acc_pair\r\n");
-
 		}
 
-		else if ((PIR == MUTEGPS) && (PIR < HB) && (PIR < ACC))
+		else if ((PIR == MUTEGPS) && (PIR < HB) && (PIR < ACC) && (PIR < BLKOUT))
+
 		{
 			wakeupState = img_pGPS_pair;
 			min = PIR;
 			PRINTF("WakeupState is img_pGPS_pair\r\n");
-
 		}
 
+		else if ((PIR == BLKOUT) && (PIR < HB) && (PIR < ACC) && (PIR < MUTEGPS))
 
-		else if ((ACC == MUTEGPS) && (ACC < HB) && (ACC < PIR))
+		{
+			wakeupState = img_blackout_pair;
+			min = PIR;
+			PRINTF("WakeupState is img_blackout_pair\r\n");
+		}
+
+		else if ((ACC == MUTEGPS) && (ACC < HB) && (ACC < PIR) && (ACC < BLKOUT))
+
 		{
 			wakeupState = acc_wu_enabled;
 			min = ACC;
 			PRINTF("WakeupState is acc_wu_enabled\r\n");
 		}
 
+		else if ((ACC == BLKOUT) && (ACC < HB) && (ACC < PIR) && (ACC < MUTEGPS))
 
+		{
+			wakeupState = acc_blackout_pair;
+			min = ACC;
+			PRINTF("WakeupState is acc_blackout_pair\r\n");
+		}
+
+		else if ((MUTEGPS == BLKOUT) && (MUTEGPS < HB) && (MUTEGPS < PIR) && (MUTEGPS < ACC))
+
+		{
+			wakeupState = pGPS_blackout_pair;
+			min = MUTEGPS;
+			PRINTF("WakeupState is pGPS_blackout_pair\r\n");
+		}
+
+		else if ((HB == PIR) && (HB == ACC) && (HB < MUTEGPS) && (HB < BLKOUT))
+
+		{
+			wakeupState = hb_img_acc_pair;
+			min = HB;
+			PRINTF("WakeupState is hb_img_acc_pair\r\n");
+		}
+
+		else if ((HB == PIR) && (HB == MUTEGPS) && (HB < ACC) && (HB < BLKOUT))
+
+		{
+			wakeupState = hb_img_pGPS_pair;
+			min = HB;
+			PRINTF("WakeupState is hb_img_pGPS_pair\r\n");
+		}
+
+		else if ((HB == PIR) && (HB == BLKOUT) && (HB < MUTEGPS) && (HB < ACC))
+
+		{
+			wakeupState = hb_img_blackout_wu_enabled;
+			min = HB;
+			PRINTF("WakeupState is hb_img_blackout_wu_enabled\r\n");
+		}
+
+		else if ((ACC == HB) && (ACC == MUTEGPS) && (ACC < PIR) && (ACC < BLKOUT))
+
+		{
+			wakeupState = hb_acc_pair;
+			min = HB;
+			PRINTF("WakeupState is hb_acc_pair\r\n");
+		}
+
+		else if ((ACC == HB) && (ACC == BLKOUT) && (ACC < PIR) && (ACC < MUTEGPS))
+
+		{
+			wakeupState = hb_acc_blackout_wu_enabled;
+			min = HB;
+			PRINTF("WakeupState is hb_acc_blackout_wu_enabled\r\n");
+		}
+
+		else if ((MUTEGPS == HB) && (MUTEGPS == BLKOUT) && (MUTEGPS < PIR) && (MUTEGPS < ACC))
+
+		{
+			wakeupState = hb_pGPS_blackout_wu_enabled;
+			min = HB;
+			PRINTF("WakeupState is hb_pGPS_blackout_wu_enabled\r\n");
+		}
+
+		else if ((PIR == MUTEGPS) && (PIR == ACC) && (PIR < HB) && (PIR < BLKOUT))
+
+		{
+			wakeupState = img_acc_pair;
+			min = PIR;
+			PRINTF("WakeupState is img_acc_pair\r\n");
+		}
+
+		else if ((PIR == BLKOUT) && (PIR == ACC) && (PIR < HB) && (PIR < MUTEGPS))
+
+		{
+			wakeupState = img_acc_blackout_wu_enabled;
+			min = PIR;
+			PRINTF("WakeupState is img_acc_blackout_wu_enabled\r\n");
+		}
+
+		else if ((PIR == BLKOUT) && (PIR == MUTEGPS) && (PIR < HB) && (PIR < ACC))
+
+		{
+			wakeupState = img_pGPS_blackout_wu_enabled;
+			min = PIR;
+			PRINTF("WakeupState is img_pGPS_blackout_wu_enabled\r\n");
+		}
+
+		else if ((ACC == BLKOUT) && (ACC == MUTEGPS) && (ACC < HB) && (ACC < PIR))
+
+		{
+			wakeupState = acc_blackout_pair;
+			min = ACC;
+			PRINTF("WakeupState is acc_blackout_pair\r\n");
+		}
+
+		else if ((HB == PIR) && (HB == ACC) && (HB == MUTEGPS) && (HB < BLKOUT))
+
+		{
+			wakeupState = hb_img_acc_pair;
+			min = HB;
+			PRINTF("WakeupState is hb_img_acc_pair\r\n");
+		}
+
+		else if ((HB == PIR) && (HB == ACC) && (HB == BLKOUT) && (HB < MUTEGPS))
+
+		{
+			wakeupState = hb_img_acc_blackout_wu_enabled;
+			min = HB;
+			PRINTF("WakeupState is hb_img_acc_blackout_wu_enabled\r\n");
+		}
+
+		else if ((HB == BLKOUT) && (HB == ACC) && (HB == MUTEGPS) && (HB < PIR))
+
+		{
+			wakeupState = hb_acc_blackout_wu_enabled;
+			min = HB;
+			PRINTF("WakeupState is hb_img_acc_blackout_wu_enabled\r\n");
+		}
+
+		else if ((PIR == BLKOUT) && (PIR == ACC) && (PIR == MUTEGPS) && (PIR < HB))
+
+		{
+			wakeupState = img_acc_blackout_wu_enabled;
+			min = PIR;
+			PRINTF("WakeupState is img_acc_blackout_wu_enabled\r\n");
+		}
+
+		else if ((HB == BLKOUT) && (HB == PIR) && (HB == MUTEGPS) && (HB < ACC))
+
+		{
+			wakeupState = hb_img_pGPS_blackout_wu_enabled;
+			min = HB;
+			PRINTF("WakeupState is hb_img_pGPS_blackout_wu_enabled\r\n");
+		}
+
+		else if ((HB == PIR) && (HB == ACC) && (HB == MUTEGPS) && (HB == BLKOUT))
+
+		{
+			wakeupState = hb_img_acc_blackout_wu_enabled;
+			min = HB;
+			PRINTF("WakeupState is hb_img_acc_blackout_wu_enabled\r\n");
+		}
 
 	}
-	else if (MuteInit && (!accelMuteInit))
+
+	else if (pirBlackout && MuteInit && !accelMuteInit)
+
 	{
+
+		if ((HB < PIR) && (HB < BLKOUT))
+
+		{
+			wakeupState = hb_wu_enabled;
+			min = HB;
+			PRINTF("WakeupState is hb_wu_enabled\r\n");
+		}
+
+		else if ((PIR < HB) && (PIR < BLKOUT))
+
+		{
+			wakeupState = img_wu_enabled;
+			min = PIR;
+			PRINTF("WakeupState is img_wu_enabled\r\n");
+		}
+
+		else if ((BLKOUT < HB) && (BLKOUT < PIR))
+
+		{
+			wakeupState = blackout_wu_enabled;
+			min = BLKOUT;
+			PRINTF("WakeupState is blackout_wu_enabled\r\n");
+		}
+
+		else if ((HB == PIR) && (HB < BLKOUT))
+
+		{
+			wakeupState = hb_img_pair;
+			min = HB;
+			PRINTF("WakeupState is hb_img_pair\r\n");
+		}
+
+		else if ((HB == BLKOUT) && (HB < PIR))
+
+		{
+			wakeupState = hb_blackout_pair;
+			min = HB;
+			PRINTF("WakeupState is hb_blackout_pair\r\n");
+		}
+
+		else if ((BLKOUT == PIR) && (BLKOUT < HB))
+
+		{
+			wakeupState = img_blackout_pair;
+			min = PIR;
+			PRINTF("WakeupState is img_blackout_pair\r\n");
+		}
+
+		else if ((BLKOUT == PIR) && (BLKOUT == HB))
+
+		{
+			wakeupState = hb_img_blackout_wu_enabled;
+			min = PIR;
+			PRINTF("WakeupState is hb_img_blackout_wu_enabled \r\n");
+		}
+
+	}
+
+	else if (pirBlackout && accelMuteInit && !MuteInit)
+
+	{
+
+		if ((HB < ACC) && (HB < MUTEGPS) && (HB < BLKOUT))
+
+		{
+			wakeupState = hb_wu_enabled;
+			min = HB;
+			PRINTF("WakeupState is hb_wu_enabled\r\n");
+		}
+
+		else if ((ACC < HB) && (ACC < MUTEGPS) && (ACC < BLKOUT))
+
+		{
+			wakeupState = acc_wu_enabled;
+			min = ACC;
+			PRINTF("WakeupState is acc_wu_enabled\r\n");
+		}
+
+		else if ((MUTEGPS < HB) && (MUTEGPS < ACC) && (MUTEGPS < BLKOUT))
+
+		{
+			wakeupState = pGPS_wu_enabled;
+			min = MUTEGPS;
+			PRINTF("WakeupState is pGPS_wu_enabled\r\n");
+		}
+
+		else if ((BLKOUT < HB) && (BLKOUT < ACC) && (BLKOUT < MUTEGPS))
+
+		{
+			wakeupState = blackout_wu_enabled;
+			min = BLKOUT;
+			PRINTF("WakeupState is blackout_wu_enabled\r\n");
+		}
+
+		else if ((HB == ACC) && (HB < MUTEGPS) && (HB < BLKOUT))
+
+		{
+			wakeupState = hb_acc_pair;
+			min = HB;
+			PRINTF("WakeupState is hb_acc_pair\r\n");
+		}
+
+		else if ((HB == MUTEGPS) && (HB < ACC) && (HB < BLKOUT))
+
+		{
+			wakeupState = hb_pGPS_pair;
+			min = HB;
+			PRINTF("WakeupState is hb_acc_pair\r\n");
+		}
+
+		else if ((HB == BLKOUT) && (HB < ACC) && (HB < MUTEGPS))
+
+		{
+			wakeupState = hb_blackout_pair;
+			min = HB;
+			PRINTF("WakeupState is hb_blackout_pair\r\n");
+		}
+
+		else if ((ACC == MUTEGPS) && (ACC < HB) && (ACC < BLKOUT))
+
+		{
+			wakeupState = acc_wu_enabled;
+			min = ACC;
+			PRINTF("WakeupState is acc_wu_enabled\r\n");
+		}
+
+		else if ((ACC == BLKOUT) && (ACC < HB) && (ACC < MUTEGPS))
+
+		{
+			wakeupState = acc_blackout_pair;
+			min = ACC;
+			PRINTF("WakeupState is acc_blackout_pair\r\n");
+		}
+
+		else if ((MUTEGPS == BLKOUT) && (MUTEGPS < HB) && (MUTEGPS < ACC))
+
+		{
+			wakeupState = pGPS_blackout_pair;
+			min = MUTEGPS;
+			PRINTF("WakeupState is pGPS_blackout_pair\r\n");
+		}
+
+		else if ((HB == ACC) && (HB == MUTEGPS) && (HB < BLKOUT))
+
+		{
+			wakeupState = hb_acc_pair;
+			min = HB;
+			PRINTF("WakeupState is hb_acc_pair\r\n");
+		}
+
+		else if ((HB == ACC) && (HB == BLKOUT) && (HB < BLKOUT))
+
+		{
+			wakeupState = hb_acc_blackout_wu_enabled;
+			min = HB;
+			PRINTF("WakeupState is hb_acc_blackout_wu_enabled\r\n");
+		}
+
+		else if ((ACC == BLKOUT) && (ACC == MUTEGPS) && (ACC < HB))
+
+		{
+			wakeupState = acc_blackout_pair;
+			min = ACC;
+			PRINTF("WakeupState is acc_blackout_pair\r\n");
+		}
+
+		else if ((ACC == BLKOUT) && (ACC == MUTEGPS) && (ACC == HB))
+
+		{
+			wakeupState = hb_acc_blackout_wu_enabled;
+			min = HB;
+			PRINTF("WakeupState is hb_acc_blackout_wu_enabled\r\n");
+		}
+
+	}
+
+	else if (MuteInit && accelMuteInit && !pirBlackout)
+
+	{
+
+		if ((HB < PIR) && (HB < ACC) && (HB < MUTEGPS))
+
+		{
+			wakeupState = hb_wu_enabled;
+			min = HB;
+			PRINTF("WakeupState is hb_wu_enabled\r\n");
+		}
+
+		else if ((PIR < HB) && (PIR < ACC) && (PIR < MUTEGPS))
+
+		{
+			wakeupState = img_wu_enabled;
+			min = PIR;
+			PRINTF("WakeupState is img_wu_enabled\r\n");
+		}
+
+		else if ((ACC < HB) && (ACC < PIR) && (ACC < MUTEGPS))
+
+		{
+			wakeupState = acc_wu_enabled;
+			min = ACC;
+			PRINTF("WakeupState is acc_wu_enabled\r\n");
+		}
+
+		else if ((MUTEGPS < HB) && (MUTEGPS < PIR) && (MUTEGPS < ACC))
+
+		{
+			wakeupState = pGPS_wu_enabled;
+			min = MUTEGPS;
+			PRINTF("WakeupState is pGPS_wu_enabled\r\n");
+		}
+
+		else if ((HB == PIR) && (HB == ACC) && (HB == MUTEGPS))
+
+		{
+			wakeupState = hb_img_acc_pair;
+			min = HB;
+			PRINTF("WakeupState is hb_img_acc_pair\r\n");
+		}
+
+		else if ((HB == PIR) && (HB = ACC) && (HB < MUTEGPS))
+
+		{
+			wakeupState = hb_img_acc_pair;
+			min = HB;
+			PRINTF("WakeupState is hb_img_acc_pair\r\n");
+		}
+
+		else if ((HB == PIR) && (HB = MUTEGPS) && (HB < ACC))
+
+		{
+			wakeupState = hb_img_pGPS_pair;
+			min = HB;
+			PRINTF("WakeupState is hb_img_pGPS_pair\r\n");
+		}
+
+		else if ((HB == ACC) && (HB = MUTEGPS) && (HB < PIR))
+
+		{
+			wakeupState = hb_acc_pair;
+			min = HB;
+			PRINTF("WakeupState is hb_acc_pair\r\n");
+		}
+
+		else if ((PIR == ACC) && (PIR = MUTEGPS) && (PIR < HB))
+
+		{
+			wakeupState = img_acc_pair;
+			min = PIR;
+			PRINTF("WakeupState is img_acc_pair\r\n");
+		}
+
+		else if ((HB == PIR) && (HB < ACC) && (HB < MUTEGPS))
+
+		{
+			wakeupState = hb_img_pair;
+			min = HB;
+			PRINTF("WakeupState is hb_img_pair\r\n");
+		}
+
+		else if ((HB == ACC) && (HB < PIR) && (HB < MUTEGPS))
+
+		{
+			wakeupState = hb_acc_pair;
+			min = HB;
+			PRINTF("WakeupState is hb_acc_pair\r\n");
+		}
+
+		else if ((HB == MUTEGPS) && (HB < PIR) && (HB < ACC))
+
+		{
+			wakeupState = hb_pGPS_pair;
+			min = HB;
+			PRINTF("WakeupState is hb_pGPS_pair\r\n");
+		}
+
+		else if ((PIR == ACC) && (PIR < HB) && (PIR < MUTEGPS))
+
+		{
+			wakeupState = img_acc_pair;
+			min = PIR;
+			PRINTF("WakeupState is img_acc_pair\r\n");
+		}
+
+		else if ((PIR == MUTEGPS) && (PIR < HB) && (PIR < ACC))
+
+		{
+			wakeupState = img_pGPS_pair;
+			min = PIR;
+			PRINTF("WakeupState is img_pGPS_pair\r\n");
+		}
+
+		else if ((ACC == MUTEGPS) && (ACC < HB) && (ACC < PIR))
+
+		{
+			wakeupState = acc_wu_enabled;
+			min = ACC;
+			PRINTF("WakeupState is acc_wu_enabled\r\n");
+		}
+
+	}
+
+	else if (MuteInit && (!accelMuteInit) && (!pirBlackout))
+
+	{
+
 		if (HB < PIR)
 		{
 			wakeupState = hb_wu_enabled;
 			min = HB;
 			PRINTF("WakeupState is hb_wu_enabled\r\n");
-
 		}
+
 		else if (PIR < HB)
 		{
 			wakeupState = img_wu_enabled;
 			min = PIR;
 			PRINTF("WakeupState is img_wu_enabled\r\n");
-
 		}
+
 		else if (PIR == HB)
 		{
 			wakeupState = hb_img_pair;
 			min = HB;
 			PRINTF("WakeupState is hb_img_pair\r\n");
-
 		}
+
 	}
 
-	else if (accelMuteInit && (!MuteInit))
+	else if (accelMuteInit && (!MuteInit) && !pirBlackout)
+
 	{
+
 		if ((HB == ACC) && (HB == MUTEGPS))
 		{
 			wakeupState = hb_acc_pair;
 			min = HB;
 			PRINTF("WakeupState is hb_acc_pair\r\n");
-
 		}
+
 		else if ((HB == ACC) && (HB < MUTEGPS))
 		{
 			wakeupState = hb_acc_pair;
 			min = HB;
 			PRINTF("WakeupState is hb_acc_pair\r\n");
 		}
+
 		else if ((HB == MUTEGPS) && (HB < ACC))
 		{
 			wakeupState = hb_pGPS_pair;
 			min = HB;
 			PRINTF("WakeupState is hb_pGPS_pair\r\n");
 		}
+
 		else if ((ACC == MUTEGPS) && (ACC < HB))
 		{
 			wakeupState = acc_wu_enabled;
 			min = ACC;
 			PRINTF("WakeupState is acc_wu_enabled\r\n");
 		}
+
 		else if ((HB < ACC) && (HB < MUTEGPS))
 		{
 			wakeupState = hb_wu_enabled;
 			min = HB;
 			PRINTF("WakeupState is hb_wu_enabled\r\n");
 		}
+
 		else if ((ACC < HB) && (ACC < MUTEGPS))
 		{
 			wakeupState = acc_wu_enabled;
 			min = ACC;
 			PRINTF("WakeupState is acc_wu_enabled\r\n");
 		}
+
 		else if ((MUTEGPS < HB) && (MUTEGPS < ACC))
 		{
 			wakeupState = pGPS_wu_enabled;
@@ -4483,7 +4826,9 @@ uint16_t minValue4 (uint16_t HB, uint16_t PIR, uint16_t ACC, uint16_t MUTEGPS)
 		}
 
 	}
+
 	else
+
 	{
 		wakeupState = hb_wu_enabled;
 		min = HB;
@@ -4491,7 +4836,10 @@ uint16_t minValue4 (uint16_t HB, uint16_t PIR, uint16_t ACC, uint16_t MUTEGPS)
 	}
 
 	return min;
+
 }
+
+
 /**
  * @brief  Decodes control commands
  * @note   Expand in the future to provide several tones and also move to a Buzzer.c file
