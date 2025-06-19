@@ -54,5 +54,6 @@ void getBuzzerParameters(BUZZER_PARAMETER_TYPE *extParams);
 void setBuzzerParameters(BUZZER_PARAMETER_TYPE extParams);
 bool decodeBuzzerConfigs(uint8_t* mqttMsg);
 char* getBuzzerConfigStr(void);
+void setBuzzerDefault(bool isTrue);
 
 #endif /* BUZZER_H_ */

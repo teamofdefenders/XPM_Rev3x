@@ -32,7 +32,7 @@ BUZZER_PARAMETER_TYPE privateBuzzerParams;
 void buzzerParametersInit()
 {
 	privateBuzzerParams.mode = DEF_BUZZ_MODE;
-	privateBuzzerParams.valueDefault = 200;
+	setBuzzerDefault(false);
 }
 
 /**
@@ -44,6 +44,7 @@ void buzzerParametersInit()
 void getBuzzerParameters(BUZZER_PARAMETER_TYPE *extParams)
 {
 	extParams->mode = privateBuzzerParams.mode;
+	extParams->valueDefault = privateBuzzerParams.valueDefault;
 }
 
 /**
@@ -55,6 +56,13 @@ void getBuzzerParameters(BUZZER_PARAMETER_TYPE *extParams)
 void setBuzzerParameters(BUZZER_PARAMETER_TYPE extParams)
 {
 	privateBuzzerParams.mode = extParams.mode;
+}
+
+void setBuzzerDefault(bool isTrue)
+{
+	privateBuzzerParams.valueDefault = 200;
+	if (isTrue)
+		privateBuzzerParams.valueDefault = 0;
 }
 
 /**
@@ -158,6 +166,7 @@ bool decodeBuzzerConfigs(uint8_t* mqttMsg)
 	{
 		decodedBuzzerParams.mode = mode;
 		setBuzzerParameters(decodedBuzzerParams);
+		setBuzzerDefault(false);
 	}
 	else
 	{
