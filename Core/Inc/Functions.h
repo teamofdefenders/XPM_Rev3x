@@ -32,7 +32,6 @@
 #define CONTAINER_INIT_SIZE 10
 #define CONTAINER_RESIZE_CHUNK 2
 
-
 #define OTA_FLASH_SIZE 160000  // OTA flash arbitrary maximum size
 #define MEMORY_MAX 4000	// Change to RECV_MAX_SIZE
 #define PIC_MAX 60000
@@ -81,24 +80,6 @@
 #define ISO_TIMESTAMP_LENGTH 25
 #define LOG_TIMESTAMP_LENGTH 25
 
-//  ****************   Buzzer Defines
-
-// Bit definition for BUZZER Mode register
-#define BUZZ_MODE_STARTMOTION_Pos 	(0U)
-#define BUZZ_MODE_STOPMOTION_Pos	(1U)
-#define BUZZ_MODE_NIGHT_Pos    		(2U)
-//#define BUZZ_MODE_			(3U)
-//#define BUZZ_MODE_		(4U)
-#define BUZZ_MODE_TEST_Pos   		(8U)
-
-#define BUZ_LENGTH_MOTION_msec     3001
-#define BUZZER_TIME 200
-
-#define BUZ_LENGTH_JOIN_msec       130
-#define BUZ_LENGTH_ORPHAN_msec     90
-
-#define Heartbeat_Default_Hours 4
-#define Heartbeat_Default_Minutes 30
 //  ********   Mask Definitions
 // Hardware Status
 // Up to 8 bits of space for control intializer
@@ -150,11 +131,14 @@
 #define MOVEMENT_UPDT      0b00010000000000000000000000000000
 #define PIR_END            0b00100000000000000000000000000000
 
-
 // **********  End of  Mask Definitions
 
 // *****************  Default Conditions
 #define DEFAULT_STATE 	WAKE_STATE
+
+// KCS check these
+#define Heartbeat_Default_Hours 4
+#define Heartbeat_Default_Minutes 30
 
 #define DEFAULT_HB 43200  // 12 hours
 #define DEFAULT_HB_MODE 3 //Enabled all the time
@@ -164,10 +148,6 @@
 #define DEFAULT_No_Motion_Detection 0
 #define DEFAULT_Near_Motion 0
 #define DEFAULT_Day_Night_Filter 0
-
-#define DEFAULT_Start_Motion_Cycles 0
-#define DEFAULT_Stop_Motion_Cycles 0
-#define DEFAULT_Buzzer_Mode 0
 
 #define DEFAULT_Temperature_Timer 0
 #define DEFAULT_Failed_Temperature_ID_Check 0
@@ -274,7 +254,7 @@
 #define _Shift Data_Ptr->External_Data.Shift
 #define _Encoded_Picture Data_Ptr->Camera_Data.Encoded
 #define _Encoded_Size Data_Ptr->Camera_Data.Encoded_Size
-#define _Buzzer_Control memory.buzzerData.Control
+
 #define _PIR_Control Data_Ptr->PIR_Data.Control
 #define _Cell_Date_Day Data_Ptr->Cdate_Data.CellTime_Day
 #define _Cell_Date_Month Data_Ptr->Cdate_Data.CellTime_Month
@@ -604,23 +584,6 @@ typedef struct
 //5 - Reserved
 //6 - Reserved
 //7 - Reserved
-typedef struct
-{
-	// KCS fix these names
-	uint8_t Single_Repeat;
-	uint8_t Cycles_Repeat;
-	uint8_t State;
-	uint8_t Control;
-	uint8_t mode;           // see above
-	uint8_t startCycles;
-	uint8_t stopCycles;
-	// KCS do these all need to be uint32 ????
-	uint32_t Start_Delay;
-	uint32_t Single_Delay;
-	uint32_t Cycles_Delay;
-	uint32_t Cycles_Length;
-	uint32_t Single_Length;
-} BUZZER_DATA_TYPE;
 
 //Heart Beat mode Bit Definition
 //0 - Night Enabled/Disable
@@ -755,7 +718,6 @@ typedef struct
 	CAMERA_DATA_TYPE Camera_Data;
 	MODEM_DATA_TYPE Modem_Data;
 	EXTERNAL_DATA_TYPE External_Data;
-	BUZZER_DATA_TYPE buzzerData;
 	HEARTBEAT_DATA_TYPE heartBeatData;
 	CDATE_DATA_TYPE Cdate_Data;
 	TEMP_TIME_DATA_TYPE Temptime_Data;

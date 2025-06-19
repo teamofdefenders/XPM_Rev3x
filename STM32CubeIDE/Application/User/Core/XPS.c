@@ -23,6 +23,7 @@
 #include "GPS.h"
 #include "DayNight.h"
 #include "PIR.h"
+#include "Buzzer.h"
 
 /******************************************************
  Global Variables
@@ -404,9 +405,13 @@ bool XPS_paramRetrieve ( MEM_PTR *Data_Ptr )
 		thSensorParams.humidity.highSet =    paramPage1 [ HUMD_HI_SET ];
 		thSensorParams.humidity.hysteresis = paramPage1 [ HUMD_HYSTER ];
 
-		Data_Ptr->buzzerData.startCycles = paramPage1 [ BZ_START_CYCLES ];
-		Data_Ptr->buzzerData.stopCycles =  paramPage1 [ BZ_STOP_CYCLES ];
-		Data_Ptr->buzzerData.mode =        paramPage1 [ BZ_MODE ];
+		BUZZER_PARAMETER_TYPE retrievedBuzzParams;
+
+		//Data_Ptr->buzzerData.startCycles = paramPage1 [ BZ_START_CYCLES ];
+		//Data_Ptr->buzzerData.stopCycles =  paramPage1 [ BZ_STOP_CYCLES ];
+		retrievedBuzzParams.mode =        paramPage1 [ BZ_MODE ];
+		setBuzzerParameters(retrievedBuzzParams);
+
 		// KCS make name like GPS??
 		accParams.mode =        paramPage1 [ ACC_MODE ];
 		accParams.range =       paramPage1 [ ACC_RANGE ];
@@ -414,7 +419,6 @@ bool XPS_paramRetrieve ( MEM_PTR *Data_Ptr )
 		accParams.hysteresis =  ((paramPage1 [ ACC_HYSTER_MSB ] << 8) + paramPage1 [ ACC_HYSTER_LSB ]);
 		accParams.mutePeriod =  ((paramPage1 [ ACC_MUTE_MSB ] << 8) + paramPage1 [ ACC_MUTE_LSB ]);
 		setAccelParameters(accParams);
-
 
 		camParams.mode = paramPage1[CAMERA_MODE];
 		camParams.pictureInterval = paramPage1[CAMERA_PIC_INTERVAL];
@@ -530,9 +534,11 @@ void XPS_paramStore ( MEM_PTR *Data_Ptr )
 	paramPage1 [ HUMD_HI_SET ] =  thSensorParams.humidity.highSet;
 	paramPage1 [ HUMD_HYSTER ] =  thSensorParams.humidity.hysteresis;
 
-	paramPage1 [ BZ_START_CYCLES ] = Data_Ptr->buzzerData.startCycles;
-	paramPage1 [ BZ_STOP_CYCLES ]  = Data_Ptr->buzzerData.stopCycles;
-	paramPage1 [ BZ_MODE ]         = Data_Ptr->buzzerData.mode;
+	BUZZER_PARAMETER_TYPE currentBuzzParams;
+	getBuzzerParameters(&currentBuzzParams);
+	paramPage1 [ BZ_START_CYCLES ] = 1; // not used anymore but save memory
+	paramPage1 [ BZ_STOP_CYCLES ]  = 1; // not used anymore but save memory
+	paramPage1 [ BZ_MODE ]         = currentBuzzParams.mode;
 
 	// KCS call getACCELParameters
 	getAccelParameters(&accParams);

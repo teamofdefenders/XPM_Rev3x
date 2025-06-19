@@ -214,16 +214,6 @@ void memory_Init (MEM_PTR *Data_Ptr )
 			pirParametersInit();  //Initialize PIR Filter parameters
 		}
 
-		Data_Ptr->buzzerData.Single_Repeat = 2;
-		Data_Ptr->buzzerData.Single_Length = 0x00001000;
-		Data_Ptr->buzzerData.Single_Delay = 0x00003900;
-		Data_Ptr->buzzerData.Cycles_Repeat = 0;
-		Data_Ptr->buzzerData.Cycles_Length = 0x00001000;
-		Data_Ptr->buzzerData.Cycles_Delay = 0x00001000;
-		Data_Ptr->buzzerData.Start_Delay = 100;
-		Data_Ptr->buzzerData.State = Short;    //GageDemo
-		Data_Ptr->buzzerData.Control = 0;
-
 		//	Data_Ptr->Temperature_Data.Timer = 0xFFF;
 		Data_Ptr->Temperature_Data.Failed_Temperature_ID_Check = 0;
 		Data_Ptr->Temperature_Data.Default_Temperature_Timer = 0;
@@ -858,32 +848,10 @@ void Update_State ( MEM_PTR *Data_Ptr )
 		PRINTF("Update_State includes WAKE_STATE\r\n");
 		if ( _State & BUZZER_TOGGLE )
 		{
+			// kcs remove this code section and Buzzer Toggle state
 			PRINTF("Update_State includes WAKE_STATE and BUZZER_TOGGLE\r\n");
 			_State ^= BUZZER_TOGGLE;
 
-			switch ( Data_Ptr->buzzerData.State )
-			{
-			case Short:
-				Data_Ptr->buzzerData.Single_Repeat = 0;
-				Data_Ptr->buzzerData.Cycles_Repeat = 1;
-				break;
-			case Short_Spam:
-				Data_Ptr->buzzerData.Single_Repeat = 0;
-				Data_Ptr->buzzerData.Cycles_Repeat = 3;
-				break;
-			case Long:
-				Data_Ptr->buzzerData.Single_Repeat = 2;
-				Data_Ptr->buzzerData.Cycles_Repeat = 0;
-				break;
-			case Long_Spam:
-				Data_Ptr->buzzerData.Single_Repeat = 5;
-				Data_Ptr->buzzerData.Cycles_Repeat = 2;
-				break;
-			case Custom:
-				break;
-			}
-
-			BUZ_Init ();
 		}
 
 		if ( _State & FLASH_START )
@@ -4244,6 +4212,8 @@ void sendBatteryStatus(STATUS_BATTERY_TYPE status)
 	sendDiagnostic(&memory, buffer );
 }
 
+
+// KCS move to Buzzer.c file
 /**
  * @brief  Outputs a buzzer dying tone
  * @note   Expand in the future to provide several tones and also move to a Buzzer.c file

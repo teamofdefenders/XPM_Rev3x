@@ -1,2 +1,5 @@
-../Application/User/Core/Buzzer.c:23:6:BUZ_Init	3
-../Application/User/Core/Buzzer.c:48:6:BUZ_ReCall	6
+../Application/User/Core/Buzzer.c:32:6:buzzerParametersInit	1
+../Application/User/Core/Buzzer.c:43:6:getBuzzerParameters	1
+../Application/User/Core/Buzzer.c:54:6:setBuzzerParameters	1
+../Application/User/Core/Buzzer.c:64:6:decodeBuzzerConfigs	15
+../Application/User/Core/Buzzer.c:174:7:getBuzzerConfigStr	4

@@ -1,77 +1,198 @@
 /*
- * Buzzer.c
+ ******************************************************************************
+ * @file    Buzzer.c
+ * @author  Team of Defenders
+ * @brief   Source file for buzzer functions
+ ******************************************************************************
  *
- *  Created on: Oct 5, 2023
- *      Author: SDITD
- *      Modified by Erik Pineda-A
+ * Copyright 2025 Team of Defenders
+ *
+ ******************************************************************************
  */
 
 #ifndef BUZZER_C_
 #define BUZZER_C_
 
+#include <stdio.h>
+#include <string.h>
 #include "Buzzer.h"
-
-/* External variables --------------------------------------------------------*/
-extern MEM_PTR memory;
-extern LPTIM_HandleTypeDef hlptim1;
+#include "Functions.h"
 
 /* Private variables ---------------------------------------------------------*/
-#define Buzzer_State _Buzzer_Control
-#define SET_CLOCK_SCALE LPTIM_PRESCALER_DIV128
 
 //  ********************  Public Functions  ****************************************************
-void BUZ_Init ( void )
+
+BUZZER_PARAMETER_TYPE privateBuzzerParams;
+
+/**
+ * @brief  Initializes the buzzer mode parameters
+ * @note   Default is 0
+ * @retval no return value
+ */
+void buzzerParametersInit()
 {
-	Log_Single ( "\1 Buzz \r\n\0" );
-
-	if (Buzzer_State & Buzzer_Locked) return;
-	else Buzzer_State = Buzzer_Locked + Single_Length_Enabled;
-
-	if (memory.buzzerData.Single_Repeat == 0) Buzzer_State = Buzzer_Locked + Cycles_Length_Enabled;
-
-//	hlptim1.Instance = LPTIM1;
-//	hlptim1.Init.Clock.Source = LPTIM_CLOCKSOURCE_APBCLOCK_LPOSC;
-//	hlptim1.Init.Clock.Prescaler = SET_CLOCK_SCALE;
-//	hlptim1.Init.Trigger.Source = LPTIM_TRIGSOURCE_SOFTWARE;
-//	hlptim1.Init.Period = memory.buzzerData.Start_Delay;
-//	hlptim1.Init.UpdateMode = LPTIM_UPDATE_IMMEDIATE;
-//	hlptim1.Init.CounterSource = LPTIM_COUNTERSOURCE_INTERNAL;
-//	hlptim1.Init.Input1Source = LPTIM_INPUT1SOURCE_GPIO;
-//	hlptim1.Init.Input2Source = LPTIM_INPUT2SOURCE_GPIO;
-//	hlptim1.Init.RepetitionCounter = 0;
-//
-//	HAL_LPTIM_Init ( &hlptim1 );
-
-//	if (HAL_LPTIM_Counter_Start_IT ( &hlptim1 ) != HAL_OK) Error_Handler ();
+	privateBuzzerParams.mode = DEF_BUZZ_MODE;
 }
 
-void BUZ_ReCall ( MEM_PTR *Data_Ptr )
+/**
+ * @brief  Gets the local buzzer parameters
+ * @param  BUZZER_PARAMETER_TYPE extParams
+ *         Pointer to the buzzer parameter structure
+ * @retval none
+ */
+void getBuzzerParameters(BUZZER_PARAMETER_TYPE *extParams)
 {
-	hlptim1.Instance = LPTIM1;
-	hlptim1.Init.Clock.Source = LPTIM_CLOCKSOURCE_APBCLOCK_LPOSC;
-	hlptim1.Init.Clock.Prescaler = SET_CLOCK_SCALE;
-	hlptim1.Init.Trigger.Source = LPTIM_TRIGSOURCE_SOFTWARE;
-
-	if (Buzzer_State & Single_Delay_Enabled) hlptim1.Init.Period = Data_Ptr->buzzerData.Single_Delay;
-
-	else if (Buzzer_State & Single_Length_Enabled) hlptim1.Init.Period = Data_Ptr->buzzerData.Single_Length;
-
-	else if (Buzzer_State & Cycles_Delay_Enabled) hlptim1.Init.Period = Data_Ptr->buzzerData.Cycles_Delay;
-
-	else if (Buzzer_State & Cycles_Length_Enabled) hlptim1.Init.Period = Data_Ptr->buzzerData.Cycles_Length;
-
-	else return;
-
-	hlptim1.Init.UpdateMode = LPTIM_UPDATE_IMMEDIATE;
-	hlptim1.Init.CounterSource = LPTIM_COUNTERSOURCE_INTERNAL;
-	hlptim1.Init.Input1Source = LPTIM_INPUT1SOURCE_GPIO;
-	hlptim1.Init.Input2Source = LPTIM_INPUT2SOURCE_GPIO;
-	hlptim1.Init.RepetitionCounter = 0;
-
-	HAL_LPTIM_Init ( &hlptim1 );
-
-	if (HAL_LPTIM_Counter_Start_IT ( &hlptim1 ) != HAL_OK) Error_Handler ();
+	extParams->mode = privateBuzzerParams.mode;
 }
+
+/**
+ * @brief  Sets the local buzzer parameters
+ * @param  BUZZER_PARAMETER_TYPE extParams
+ *         Pointer to the buzzer parameter structure
+ * @retval none
+ */
+void setBuzzerParameters(BUZZER_PARAMETER_TYPE extParams)
+{
+	privateBuzzerParams.mode = extParams.mode;
+}
+
+/**
+ * @brief  decodes the mqtt downlink message for the buzzer parameters
+ * @param  mqttMsg - pointer to basically a character string
+ * @retval return value isError - true is error occurred, false is everything decoded fine
+ */
+bool decodeBuzzerConfigs(uint8_t* mqttMsg)
+{
+	bool isError = false;
+	uint8_t version = 255;
+	uint16_t mode = 256;
+	char tempBuff[MEMORY_MAX] = " ";
+	char test [] = "\"buzzer\":{";
+	char verTest[] = "\"version\":";
+	char modeTest [] = "\"mode\":";
+	char buzzerErrStr[CONFIG_ERR_MSG_SIZE] = "";
+
+	int buffSize = 0;
+	BUZZER_PARAMETER_TYPE decodedBuzzerParams;
+
+	//Need to get first to prevent overwriting non passed data
+	getBuzzerParameters(&decodedBuzzerParams);
+	// Transfer MQTT message to a local buffer
+	Word_Transfer(tempBuff, (char*)mqttMsg);
+
+	char* substr = strstr(tempBuff, test);
+	if(substr)
+	{
+		buffSize += snprintf(buzzerErrStr, CONFIG_ERR_MSG_SIZE, "\"buzzer\":[\"config_error\",");
+		Refresh_Watchdog;
+		char *verStr = strstr(substr, verTest);
+		if(verStr)
+		{
+			Refresh_Watchdog;
+			verStr += strlen(verTest);
+			if(isdigit((unsigned char)verStr[0]))
+			{
+				version = atoi(verStr);
+				if(version == 0)
+				{
+					char *modeStr = strstr(substr, modeTest);
+					if(modeStr)
+					{
+						modeStr += strlen(modeTest);
+						if(isdigit((unsigned char)modeStr[0]))
+						{
+							mode = atoi(modeStr);
+							if(mode >= 0 && mode <= 255)
+							{
+								decodedBuzzerParams.mode = mode;
+							}
+							else
+							{
+								isError = true;
+								PRINTF("Buzzer mode is out of range [0-255]: %d\r\n", mode);
+								buffSize += snprintf((buzzerErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"mode_out_of_range_[0-255]\",");
+							}
+						}
+						else
+						{
+							isError = true;
+							//"Invalid data type for mode"
+							buffSize += snprintf((buzzerErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_mode_type_NAN\",");
+						}
+					}
+					else
+					{
+						isError = true;
+						buffSize += snprintf((buzzerErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_mode_string\",");
+						//"Mode not found in buzzer message"
+					}
+				}
+			}
+			else
+			{
+				isError = true;
+				//"Invalid data type for version"
+				buffSize += snprintf((buzzerErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"invalid_version_type_NAN\",");
+			}
+		}
+		else
+		{
+			isError = true;
+			buffSize += snprintf((buzzerErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_version_string\",");
+		}
+	}
+	else
+	{
+		isError = true;
+		//"buzzer data not found in configuration"
+	}
+
+	if(!isError)
+	{
+		decodedBuzzerParams.mode = mode;
+		setBuzzerParameters(decodedBuzzerParams);
+	}
+	else
+	{
+		if(buffSize > 0 && buffSize < CONFIG_ERR_MSG_SIZE - 2 && buzzerErrStr[0] != '\0')
+		{
+			if(buzzerErrStr[buffSize - 1] == ',')
+			{
+				buzzerErrStr[buffSize - 1] = ']';
+				addErrorString(buzzerErrStr);
+			}
+		}
+	}
+	return isError;
+}
+
+/**
+ * @brief  Gets the buzzer configuration in a string format
+ * @retval return Buzzer configuration string
+ */
+char* getBuzzerConfigStr(void)
+{
+	static char buffer[BUZ_MSG_SIZE] = {0};
+	bool valid = false;
+
+	int buffSize = snprintf(buffer, BUZ_MSG_SIZE, "\"buzzer\":{\"version\":%u,\"mode\":%u}",
+			BUZZ_CONFIG_VERSION, privateBuzzerParams.mode);
+
+	if(buffSize > 0 && buffSize < BUZ_MSG_SIZE)
+	{
+		valid = true;
+	}
+
+	if(valid)
+	{
+		return buffer;
+	}
+	else
+	{
+		return "Failed to build Buzzer message\r\n";
+	}
+}
+
 
 /* Private functions ---------------------------------------------------------*/
 
