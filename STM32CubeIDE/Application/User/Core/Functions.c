@@ -16,6 +16,7 @@
 #include "Functions.h"
 #include "stdio.h"
 #include <stdarg.h>
+#include <string.h>
 
 #ifdef Manual_Debug
 #include "DEBUG_CONTROL.h"
@@ -193,10 +194,11 @@ void memory_Init (MEM_PTR *Data_Ptr )
 		gpsParametersInit();  //Initialize GPS status parameters
 		gpsDataInit();        //Initialize GPS data
 		pirDataInit();        //Initialize PIR data
-		accelDataInit(); //Initialize accelerometer data
+		accelDataInit();      //Initialize accelerometer data
 		accelParametersInit(); //Initialize accelerometer parameters
 		cameraParametersInit();
 		environmentParametersInit();
+		buzzerParametersInit();
 
 		if ( latencyMin )
 		{
@@ -299,6 +301,15 @@ void memory_Init (MEM_PTR *Data_Ptr )
 	{
 		PRINTF("No Environment info found, setting to default \r\n");
 		environmentParametersInit();
+		defaultSet = true;
+	}
+
+	BUZZER_PARAMETER_TYPE localBuzCheck;
+	getBuzzerParameters(&localBuzCheck);
+	if(localBuzCheck.valueDefault != 200)
+	{
+		PRINTF("No Buzzer info found, setting to default \r\n");
+		buzzerParametersInit();
 		defaultSet = true;
 	}
 
@@ -3102,6 +3113,12 @@ void selectDownlinkOperation(MEM_PTR *Data_Ptr, MACHINE_STATE_TYPE stateOfDevice
 				updateShadowRegister = true;
 			}
 			Refresh_Watchdog;
+			if(!decodeBuzzerConfigs(downLinkPackets.mQTTMessage[opItter]))
+			{
+				PRINTF("Buzzer configuration downlink found\r\n");
+				updateShadowRegister = true;
+			}
+			Refresh_Watchdog;
 			if(!decodePIRConfigs(downLinkPackets.mQTTMessage[opItter]))
 			{
 				PRINTF("PIR configuration downlink found\r\n");
@@ -3156,7 +3173,6 @@ void selectDownlinkOperation(MEM_PTR *Data_Ptr, MACHINE_STATE_TYPE stateOfDevice
 			sendConfigErrors(Data_Ptr, &configErrContainer);
 			freeContainer(&configErrContainer);
 			initContainer(&configErrContainer);
-
 
 			clearMqttMsg(opItter);
 			sendDeviceConfig(Data_Ptr, CONFIG_ACK);

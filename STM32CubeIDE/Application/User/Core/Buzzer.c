@@ -32,6 +32,7 @@ BUZZER_PARAMETER_TYPE privateBuzzerParams;
 void buzzerParametersInit()
 {
 	privateBuzzerParams.mode = DEF_BUZZ_MODE;
+	privateBuzzerParams.valueDefault = 200;
 }
 
 /**
@@ -93,7 +94,7 @@ bool decodeBuzzerConfigs(uint8_t* mqttMsg)
 			if(isdigit((unsigned char)verStr[0]))
 			{
 				version = atoi(verStr);
-				if(version == 0)
+				if(version == 1)
 				{
 					char *modeStr = strstr(substr, modeTest);
 					if(modeStr)
@@ -126,6 +127,12 @@ bool decodeBuzzerConfigs(uint8_t* mqttMsg)
 						buffSize += snprintf((buzzerErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"missing_mode_string\",");
 						//"Mode not found in buzzer message"
 					}
+				}
+				else
+				{
+					isError = true;
+					PRINTF("Invalid version number decoded: %d\r\n", version);
+					buffSize += snprintf((buzzerErrStr + buffSize), (CONFIG_ERR_MSG_SIZE - buffSize), "\"version_mismatch\",");
 				}
 			}
 			else

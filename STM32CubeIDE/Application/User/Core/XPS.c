@@ -409,7 +409,8 @@ bool XPS_paramRetrieve ( MEM_PTR *Data_Ptr )
 
 		//Data_Ptr->buzzerData.startCycles = paramPage1 [ BZ_START_CYCLES ];
 		//Data_Ptr->buzzerData.stopCycles =  paramPage1 [ BZ_STOP_CYCLES ];
-		retrievedBuzzParams.mode =        paramPage1 [ BZ_MODE ];
+		retrievedBuzzParams.mode =         paramPage1 [ BZ_MODE ];
+		retrievedBuzzParams.valueDefault = paramPage1 [ BZ_START_CYCLES ];
 		setBuzzerParameters(retrievedBuzzParams);
 
 		// KCS make name like GPS??
@@ -536,7 +537,7 @@ void XPS_paramStore ( MEM_PTR *Data_Ptr )
 
 	BUZZER_PARAMETER_TYPE currentBuzzParams;
 	getBuzzerParameters(&currentBuzzParams);
-	paramPage1 [ BZ_START_CYCLES ] = 1; // not used anymore but save memory
+	paramPage1 [ BZ_START_CYCLES ] = currentBuzzParams.valueDefault;
 	paramPage1 [ BZ_STOP_CYCLES ]  = 1; // not used anymore but save memory
 	paramPage1 [ BZ_MODE ]         = currentBuzzParams.mode;
 

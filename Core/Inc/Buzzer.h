@@ -36,6 +36,7 @@
 typedef struct
 {
 	uint8_t mode;      // See above
+	uint8_t valueDefault;
 } BUZZER_PARAMETER_TYPE;
 
 /* Private define ------------------------------------------------------------*/
@@ -47,6 +48,11 @@ typedef struct
 
 /* Private macro -------------------------------------------------------------*/
 
-/* Private function prototypes -----------------------------------------------*/
+/* Public function prototypes -----------------------------------------------*/
+void buzzerParametersInit();
+void getBuzzerParameters(BUZZER_PARAMETER_TYPE *extParams);
+void setBuzzerParameters(BUZZER_PARAMETER_TYPE extParams);
+bool decodeBuzzerConfigs(uint8_t* mqttMsg);
+char* getBuzzerConfigStr(void);
 
 #endif /* BUZZER_H_ */
