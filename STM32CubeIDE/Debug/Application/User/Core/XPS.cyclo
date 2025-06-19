@@ -11,7 +11,7 @@
 ../Application/User/Core/XPS.c:234:6:populateDefaults	1
 ../Application/User/Core/XPS.c:240:6:saveBank	1
 ../Application/User/Core/XPS.c:254:6:readBank	4
-../Application/User/Core/XPS.c:278:9:getMode	10
+../Application/User/Core/XPS.c:278:10:getMode	10
 ../Application/User/Core/XPS.c:320:6:XPS_paramRetrieve	2
 ../Application/User/Core/XPS.c:444:6:XPS_paramStore	1
 ../Application/User/Core/XPS.c:569:6:XPS_Picture_Save	1

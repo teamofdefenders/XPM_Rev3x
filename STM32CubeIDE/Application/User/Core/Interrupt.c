@@ -33,6 +33,8 @@ extern uint16_t wakeupState;
 extern bool accelMuteInit;
 extern bool MuteInit;
 extern bool pirBlackout;
+extern bool bootModem;
+extern bool triggerSource;
 
 
 PIR_PARAMETER_TYPE pirData;
@@ -325,11 +327,12 @@ void HAL_RTCEx_WakeUpTimerEventCallback(RTC_HandleTypeDef *hrtc)
 		{
 			memory.State ^= PIC_UPDT;
 		}
+		triggerSource = true;
 
 	}
 	else if (wakeupState == acc_wu_enabled)
 	{
-		memory.State |= WAKE_STATE + HB_UPDT + MOVEMENT_UPDT + GPS_UPDT;  //movement stop
+		memory.State |= WAKE_STATE + HB_UPDT + GPS_UPDT;  //movement stop
 		if (memory.State & UPDATE_SERVER)
 		{
 			memory.State ^= UPDATE_SERVER;
@@ -368,21 +371,24 @@ void HAL_RTCEx_WakeUpTimerEventCallback(RTC_HandleTypeDef *hrtc)
 			memory.State ^= UPDATE_SERVER;
 		}
 		pirBlackout = false;
+		bootModem = false;
+
 
 	}
 	else if (wakeupState == hb_img_pair)
 	{
-		memory.State |= WAKE_STATE + HB_UPDT  + GPS_UPDT + PIC_UPDT + PIC_SEND + PIR_END;
+		memory.State |= WAKE_STATE + HB_UPDT + PIC_UPDT + PIC_SEND + PIR_END;
 		if (memory.State & UPDATE_SERVER)
 		{
 			memory.State ^= UPDATE_SERVER;
 		}
 		MuteInit = false;
+		triggerSource = true;
 
 	}
 	else if (wakeupState == hb_acc_pair)
 	{
-		memory.State |= WAKE_STATE + HB_UPDT + MOVEMENT_UPDT + GPS_UPDT;
+		memory.State |= WAKE_STATE + HB_UPDT + GPS_UPDT;
 		if (memory.State & UPDATE_SERVER)
 		{
 			memory.State ^= UPDATE_SERVER;
@@ -410,11 +416,12 @@ void HAL_RTCEx_WakeUpTimerEventCallback(RTC_HandleTypeDef *hrtc)
 			memory.State ^= UPDATE_SERVER;
 		}
 		pirBlackout = false;
+		triggerSource = true;
 
 	}
 	else if (wakeupState == img_acc_pair)
 	{
-		memory.State |= WAKE_STATE + HB_UPDT + MOVEMENT_UPDT + GPS_UPDT + PIC_UPDT + PIC_SEND + PIR_END;
+		memory.State |= WAKE_STATE + HB_UPDT + GPS_UPDT + PIC_UPDT + PIC_SEND + PIR_END;
 		if (memory.State & UPDATE_SERVER)
 		{
 			memory.State ^= UPDATE_SERVER;
@@ -426,7 +433,7 @@ void HAL_RTCEx_WakeUpTimerEventCallback(RTC_HandleTypeDef *hrtc)
 	}
 	else if (wakeupState == img_pGPS_pair)
 	{
-		memory.State |= WAKE_STATE + GPS_UPDT + PIC_UPDT + PIC_SEND;
+		memory.State |= WAKE_STATE + GPS_UPDT + PIC_UPDT + PIC_SEND + PIR_END;
 		if (memory.State & UPDATE_SERVER)
 		{
 			memory.State ^= UPDATE_SERVER;
@@ -438,7 +445,7 @@ void HAL_RTCEx_WakeUpTimerEventCallback(RTC_HandleTypeDef *hrtc)
 
 	else if (wakeupState == img_blackout_pair)
 	{
-		memory.State |= WAKE_STATE + PIC_UPDT + PIC_SEND;
+		memory.State |= WAKE_STATE + PIC_UPDT + PIC_SEND + PIR_END;
 		if (memory.State & UPDATE_SERVER)
 		{
 			memory.State ^= UPDATE_SERVER;
@@ -452,7 +459,7 @@ void HAL_RTCEx_WakeUpTimerEventCallback(RTC_HandleTypeDef *hrtc)
 
 	else if (wakeupState == acc_blackout_pair)
 	{
-		memory.State |= WAKE_STATE + MOVEMENT_UPDT + GPS_UPDT;
+		memory.State |= WAKE_STATE + HB_UPDT + GPS_UPDT;
 		if (memory.State & UPDATE_SERVER)
 		{
 			memory.State ^= UPDATE_SERVER;
@@ -480,7 +487,7 @@ void HAL_RTCEx_WakeUpTimerEventCallback(RTC_HandleTypeDef *hrtc)
 
 	else if (wakeupState == hb_img_acc_pair)
 	{
-		memory.State |= WAKE_STATE + HB_UPDT + MOVEMENT_UPDT + GPS_UPDT + PIC_UPDT + PIC_SEND + PIR_END;
+		memory.State |= WAKE_STATE + HB_UPDT + GPS_UPDT + PIC_UPDT + PIC_SEND + PIR_END;
 		if (memory.State & UPDATE_SERVER)
 		{
 			memory.State ^= UPDATE_SERVER;
@@ -492,7 +499,7 @@ void HAL_RTCEx_WakeUpTimerEventCallback(RTC_HandleTypeDef *hrtc)
 	}
 	else if (wakeupState == hb_img_pGPS_pair)
 	{
-		memory.State |= WAKE_STATE + HB_UPDT + GPS_UPDT + PIC_UPDT + PIC_SEND;
+		memory.State |= WAKE_STATE + HB_UPDT + GPS_UPDT + PIC_UPDT + PIC_SEND + PIR_END;
 		if (memory.State & UPDATE_SERVER)
 		{
 			memory.State ^= UPDATE_SERVER;
@@ -504,12 +511,12 @@ void HAL_RTCEx_WakeUpTimerEventCallback(RTC_HandleTypeDef *hrtc)
 
 	else if (wakeupState == hb_img_blackout_wu_enabled)
 	{
-		memory.State |= WAKE_STATE + HB_UPDT + PIC_UPDT + PIC_SEND;
+		memory.State |= WAKE_STATE + HB_UPDT + PIC_UPDT + PIC_SEND + PIR_END;
 		if (memory.State & UPDATE_SERVER)
 		{
 			memory.State ^= UPDATE_SERVER;
 		}
-
+		triggerSource = true;
 		MuteInit = false;
 		pirBlackout = false;
 
@@ -517,7 +524,7 @@ void HAL_RTCEx_WakeUpTimerEventCallback(RTC_HandleTypeDef *hrtc)
 
 	else if (wakeupState == hb_acc_blackout_wu_enabled)
 	{
-		memory.State |= WAKE_STATE + HB_UPDT + MOVEMENT_UPDT + GPS_UPDT;
+		memory.State |= WAKE_STATE + HB_UPDT + GPS_UPDT;
 		if (memory.State & UPDATE_SERVER)
 		{
 			memory.State ^= UPDATE_SERVER;
@@ -543,7 +550,7 @@ void HAL_RTCEx_WakeUpTimerEventCallback(RTC_HandleTypeDef *hrtc)
 
 	else if (wakeupState == img_acc_blackout_wu_enabled)
 	{
-		memory.State |= WAKE_STATE + PIC_UPDT + PIC_SEND + MOVEMENT_UPDT + GPS_UPDT;
+		memory.State |= WAKE_STATE + PIC_UPDT + PIC_SEND + PIR_END + HB_UPDT + GPS_UPDT;
 		if (memory.State & UPDATE_SERVER)
 		{
 			memory.State ^= UPDATE_SERVER;
@@ -558,7 +565,7 @@ void HAL_RTCEx_WakeUpTimerEventCallback(RTC_HandleTypeDef *hrtc)
 
 	else if (wakeupState == img_pGPS_blackout_wu_enabled)
 	{
-		memory.State |= WAKE_STATE + PIC_UPDT + PIC_SEND + GPS_UPDT;
+		memory.State |= WAKE_STATE + PIC_UPDT + PIC_SEND + PIR_END + GPS_UPDT;
 		if (memory.State & UPDATE_SERVER)
 		{
 			memory.State ^= UPDATE_SERVER;
@@ -571,7 +578,7 @@ void HAL_RTCEx_WakeUpTimerEventCallback(RTC_HandleTypeDef *hrtc)
 
 	else if (wakeupState == hb_img_acc_blackout_wu_enabled)
 	{
-		memory.State |= WAKE_STATE + HB_UPDT + PIC_UPDT + PIC_SEND + MOVEMENT_UPDT + GPS_UPDT;
+		memory.State |= WAKE_STATE + HB_UPDT + PIC_UPDT + PIC_SEND + PIR_END + GPS_UPDT;
 		if (memory.State & UPDATE_SERVER)
 		{
 			memory.State ^= UPDATE_SERVER;
@@ -586,7 +593,7 @@ void HAL_RTCEx_WakeUpTimerEventCallback(RTC_HandleTypeDef *hrtc)
 
 	else if (wakeupState == hb_img_pGPS_blackout_wu_enabled)
 	{
-		memory.State |= WAKE_STATE + HB_UPDT + PIC_UPDT + PIC_SEND + GPS_UPDT;
+		memory.State |= WAKE_STATE + HB_UPDT + PIC_UPDT + PIC_SEND + PIR_END + GPS_UPDT;
 		if (memory.State & UPDATE_SERVER)
 		{
 			memory.State ^= UPDATE_SERVER;

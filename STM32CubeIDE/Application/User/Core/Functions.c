@@ -118,6 +118,8 @@ bool wakeupOverlap = false;
 bool cellInitialized = false;
 
 bool pirBlackout = false;
+bool bootModem = false;
+bool triggerSource = false;
 
 bool hbTimeChanged = false;
 STRING_CONTAINER configErrContainer;
@@ -517,29 +519,15 @@ void Update_State ( MEM_PTR *Data_Ptr )
 #ifdef Log_Level_0
 			Log_Single ( LOG_IDLE_START );
 #endif // Log_Level_0
-			//			bool downlinkTesting = true;
-			//			if(downlinkTesting)
-			//			{
-			//				// local copy just to print out messages
-			//				BUSINESS_DATA_TYPE downlinkBusinessHours;
-			//
-			//				Refresh_Watchdog;
-			//
-			//				const char *testMsg = "{\"day_night-v0.0\":[1,\"08:01\",\"18:02\"]}\0";
-			//				strncpy((char *)MQTTMsg[0], testMsg, strlen(testMsg));
-			//				decodeDayNightConfigs(MQTTMsg[0]);
-			//				getBusinessHours(&downlinkBusinessHours);
-			//
-			//				PRINTF("Day Hours: %d\r\n", downlinkBusinessHours.Daytime.hours);
-			//				PRINTF("Day Minutes: %d\r\n", downlinkBusinessHours.Daytime.minutes);
-			//				PRINTF("Night Hours: %d\r\n", downlinkBusinessHours.Nighttime.hours);
-			//				PRINTF("Night Minutes: %d\r\n", downlinkBusinessHours.Nighttime.minutes);
-			//			}
+
 
 			if (!latencyMin)
 			{
-				CELL_Set_Command (DISCONNECT);
-				CELL_COMMAND(Data_Ptr);
+				if (bootModem)
+				{
+					CELL_Set_Command (DISCONNECT);
+					CELL_COMMAND(Data_Ptr);
+				}
 
 				HAL_GPIO_WritePin ( MEM_CS_GPIO_Port , MEM_CS_Pin , GPIO_PIN_SET );    //for simulated battery power operation
 
@@ -586,6 +574,17 @@ void Update_State ( MEM_PTR *Data_Ptr )
 					PRINTF("pGPS timer is %u\r\n" , PeriodicGPSWakeup );
 					PRINTF("Accelerometer timer is %u\r\n\r\n\r\n" , AccwakeUp );
 
+					//TEST TEST TEST
+//					HBwakeUp = 0;
+//					PIRwakeUp = 10;
+//					AccwakeUp = 10;
+//					PeriodicGPSWakeup = 10;
+//					BlackoutWakeup = 10;
+//
+//					MuteInit = true;
+//					accelMuteInit = true;
+//					pirBlackout = true;
+					//TEST TEST TEST
 
 					wakeUp = minValue5(HBwakeUp,PIRwakeUp,AccwakeUp,PeriodicGPSWakeup, BlackoutWakeup);
 					PRINTF("Wakeup timer is %u\r\n" , wakeUp );
@@ -610,6 +609,7 @@ void Update_State ( MEM_PTR *Data_Ptr )
 				timerTriggered = false;
 				accelTriggered = false;
 				pIRTriggered = false;
+				bootModem = true;
 
 
 				SET_BIT(PWR->WUSCR, PWR_WUSCR_CWUF);
@@ -630,6 +630,14 @@ void Update_State ( MEM_PTR *Data_Ptr )
 				{
 					// If PIR is "OFF" (mode == 0 )then no reason to have it on
 					PRINTF("PIR is Inactive due to mode\r\n" );
+				}
+				if (pirBlackout)
+				{
+					PRINTF("PIR BLACKOUT ENABLED\r\n" );
+				}
+				else if (!pirBlackout)
+				{
+					PRINTF("PIR BLACKOUT DISABLED\r\n" );
 				}
 
 				//				HAL_PWR_EnableWakeUpPin ( PWR_WAKEUP_PIN6 );
@@ -690,6 +698,14 @@ void Update_State ( MEM_PTR *Data_Ptr )
 			if ( _State & WAKE_STATE )
 			{
 				//	__enable_irq();
+				if (pirBlackout)
+				{
+					PRINTF("PIR BLACKOUT ENABLED\r\n" );
+				}
+				else if (!pirBlackout)
+				{
+					PRINTF("PIR BLACKOUT DISABLED\r\n" );
+				}
 
 				Refresh_Watchdog;
 				HAL_UART_AbortReceive_IT ( &hlpuart1 );
@@ -882,6 +898,8 @@ void Update_State ( MEM_PTR *Data_Ptr )
 #endif // New_Boot_ADDR
 		}
 
+
+
 		if ( _State & PARAM_UPDT )
 		{
 
@@ -891,9 +909,75 @@ void Update_State ( MEM_PTR *Data_Ptr )
 			XPS_paramStore ( Data_Ptr );
 		}
 
+		if ( _State & GPS_UPDT)
+		{
+			PRINTF("Update_State includes WAKE_STATE and GPS_UPDT\r\n");
+			_State ^= GPS_UPDT;
+
+			if(!isModemPowered)
+			{
+				Enable_Modem_PWR(Data_Ptr);
+			}
+			getGPS(Data_Ptr);
+
+			if (!cellInitialized)
+			{
+				Enable_Modem_PWR ( Data_Ptr );
+				CELL_reInit( Data_Ptr);
+				getFirmwareDownlink(Data_Ptr, 1);
+				if ( mqttDataAvailable )
+				{
+					universalDownlinkDecoder();
+					selectDownlinkOperation(Data_Ptr, IDLE);
+				}
+			}
+
+
+			if (_State & MOVEMENT_UPDT)
+			{
+				PRINTF("Update_State includes WAKE_STATE and MOVEMENT_UPDT\r\n");
+				_State ^= MOVEMENT_UPDT;
+
+				if (!movementstop)
+				{
+					cellMovementStart(Data_Ptr, movementstop);
+				}
+
+			}
+			if(!gpsError)
+			{
+				sendGPS(Data_Ptr);
+			}
+			else
+			{
+				sendDiagnostic(&memory, "\"gps\":[\"unknown_location\"]");
+			}
+		}
+
+		if (bootModem)
+		{
+			if (!firstTimeBoot)
+			{
+				if (!cellInitialized)
+				{
+					Enable_Modem_PWR ( Data_Ptr );
+					CELL_reInit( Data_Ptr);
+					getFirmwareDownlink(Data_Ptr, 1);
+					if ( mqttDataAvailable )
+					{
+						universalDownlinkDecoder();
+						selectDownlinkOperation(Data_Ptr, IDLE);
+					}
+				}
+			}
+
+		}
+
+
 		if ( _State & PIC_UPDT )
 		{
 			_State ^= PIC_UPDT;
+			PRINTF("Update_State includes WAKE_STATE and PIC_UPDT\r\n");
 			getCameraParameters(&cameraParameters);
 			PRINTF("Camera mode is %d\r\n", cameraParameters.mode);
 
@@ -901,7 +985,6 @@ void Update_State ( MEM_PTR *Data_Ptr )
 
 			if (cameraParameters.mode != 0)
 			{
-			PRINTF("Update_State includes WAKE_STATE and PIC_UPDT\r\n");
 			cameraPowerControl(true);
 			cameraInitialize();
 			Clear_Memory( Data_Ptr );
@@ -928,22 +1011,7 @@ void Update_State ( MEM_PTR *Data_Ptr )
 				//Enable_Modem ( Data_Ptr );
 				//firstTimeBoot = false; moved to end so can use in other places
 			}
-			else
-			{
-				if (!cellInitialized)
-				{
-					Enable_Modem_PWR ( Data_Ptr );
-					CELL_reInit( Data_Ptr);
-				}
-			}
 
-			// Handle Downlinks before sending picture data
-			getFirmwareDownlink(Data_Ptr, 1);
-			if ( mqttDataAvailable )
-			{
-				universalDownlinkDecoder();
-				selectDownlinkOperation(Data_Ptr, IMAGE_TAKEN);
-			}
 			}
 		}
 		if ( _State & PIR_UPDT )
@@ -951,17 +1019,6 @@ void Update_State ( MEM_PTR *Data_Ptr )
 			_State ^= PIR_UPDT;
 			PRINTF("Update_State includes WAKE_STATE and PIR_UPDT\r\n");
 
-			if (!cellInitialized)
-			{
-				Enable_Modem_PWR ( Data_Ptr );
-				CELL_reInit( Data_Ptr);
-			}
-			getFirmwareDownlink(Data_Ptr, 1);
-			if ( mqttDataAvailable )
-			{
-				universalDownlinkDecoder();
-				selectDownlinkOperation(Data_Ptr, IDLE);
-			}
 			CELL_PIRUPDT ( Data_Ptr, true );
 			if (getPIRBlackoutPeriod() != 0)
 			{
@@ -1005,25 +1062,7 @@ void Update_State ( MEM_PTR *Data_Ptr )
 				resendMissingPackets(Data_Ptr, missingPagesCount);
 		}
 
-		if(_State & PIR_END)
-		{
-			PRINTF("Update_State includes WAKE_STATE and PIR_UPDT\r\n");
-			_State ^= PIR_END;
 
-			if (!cellInitialized)
-			{
-				Enable_Modem_PWR ( Data_Ptr );
-				CELL_reInit( Data_Ptr);
-			}
-
-			getFirmwareDownlink(Data_Ptr, 1);
-			if ( mqttDataAvailable )
-			{
-				universalDownlinkDecoder();
-				selectDownlinkOperation(Data_Ptr, IDLE);
-			}
-			CELL_PIRUPDT ( Data_Ptr, false );
-		}
 
 		if ( _State & PIC_SAVE )
 		{
@@ -1105,6 +1144,7 @@ void Update_State ( MEM_PTR *Data_Ptr )
 
 		if (firstTimeBoot)
 		{
+			triggerSource = true;
 			PRINTF("Update_State HBonBootup added HB\r\n");
 			HeartBeat ( Data_Ptr );
 			//  calculateNextHBTime();
@@ -1141,60 +1181,12 @@ void Update_State ( MEM_PTR *Data_Ptr )
 		}
 		else //if(!firstTimeBoot)
 		{
-			if ( _State & GPS_UPDT )
-			{
-				PRINTF("Update_State includes WAKE_STATE and GPS_UPDT\r\n");
-				_State ^= GPS_UPDT;
-
-				if(!isModemPowered)
-				{
-					Enable_Modem_PWR(Data_Ptr);
-				}
-				getGPS(Data_Ptr);
-
-				if (!cellInitialized)
-				{
-					CELL_Set_PDP ( PDP_NOT_SET );
-					CELL_reInit(Data_Ptr);
-				}
-				getFirmwareDownlink(Data_Ptr, 1);
-				if ( mqttDataAvailable )
-				{
-					universalDownlinkDecoder();
-					selectDownlinkOperation(Data_Ptr, IDLE);
-				}
-
-				if (_State & MOVEMENT_UPDT)
-				{
-					PRINTF("Update_State includes WAKE_STATE and MOVEMENT_UPDT\r\n");
-					_State ^= MOVEMENT_UPDT;
-
-					if (!movementstop)
-					{
-						cellMovementStart(Data_Ptr, movementstop);
-					}
-
-				}
-				if(!gpsError)
-				{
-					sendGPS(Data_Ptr);
-				}
-				else
-				{
-					sendDiagnostic(&memory, "\"gps\":[\"unknown_location\"]");
-				}
-			}
 
 			if (_State & HB_UPDT)
 			{
 				PRINTF("Update_State includes WAKE_STATE and HB_UPDT\r\n");
 				_State ^= HB_UPDT;
 
-				if (!cellInitialized)
-				{
-					Enable_Modem_PWR(Data_Ptr);
-					CELL_reInit(Data_Ptr);
-				}
 
 				NightConfirmed = true;   //GAV "fix" added to prevent extra modem enable in "sendHeartBeat
 				sendHeartBeat(Data_Ptr);
@@ -1205,6 +1197,25 @@ void Update_State ( MEM_PTR *Data_Ptr )
 				cellMovementStart(Data_Ptr, movementstop);
 				movementstop = false;
 			}
+
+			if(_State & PIR_END)
+			{
+				PRINTF("Update_State includes WAKE_STATE and PIR_UPDT\r\n");
+				_State ^= PIR_END;
+
+				CELL_PIRUPDT ( Data_Ptr, false );
+			}
+
+			if (bootModem)
+			{
+			getFirmwareDownlink(Data_Ptr, 1);
+			if ( mqttDataAvailable )
+			{
+				universalDownlinkDecoder();
+				selectDownlinkOperation(Data_Ptr, IDLE);
+			}
+			}
+
 			if (fwPending)
 			{
 				fwPending = false;
@@ -1212,11 +1223,11 @@ void Update_State ( MEM_PTR *Data_Ptr )
 				startOTAProcess(Data_Ptr);
 			}
 		}
-
 	}
 
-	//PRINTF("Night reset\r\n");
 
+	//PRINTF("Night reset\r\n");
+	triggerSource = false;
 	NightConfirmed = false;
 	firstTimeBoot = false;
 	_State |= SLEEP_STATE;
@@ -3416,12 +3427,12 @@ void sendHeartBeat(MEM_PTR *Data_Ptr)
 		chargerCableState = newChargeCableState;
 	}
 
-	getFirmwareDownlink(Data_Ptr, 1);
-	if ( mqttDataAvailable )
-	{
-		universalDownlinkDecoder();
-		selectDownlinkOperation(Data_Ptr, WAKEUP_HB);
-	}
+//	getFirmwareDownlink(Data_Ptr, 1);
+//	if ( mqttDataAvailable )
+//	{
+//		universalDownlinkDecoder();
+//		selectDownlinkOperation(Data_Ptr, WAKEUP_HB);
+//	}
 }
 
 bool decodeHBConfigs(MEM_PTR *Data_Ptr, uint8_t *mqttMsg)
@@ -4101,6 +4112,7 @@ void powerDownDeviceForSleep(void)
 	HAL_GPIO_WritePin ( Cell_Enable_GPIO_Port , Cell_Enable_Pin , GPIO_PIN_RESET );    //for simulated battery power operation
 	HAL_GPIO_WritePin ( Cell_DVS_GPIO_Port , Cell_DVS_Pin , GPIO_PIN_RESET );          //for simulated battery power operation
 	isModemPowered = false;
+	bootModem = false;
 }
 
 //KCS maybe this should return the isError bool

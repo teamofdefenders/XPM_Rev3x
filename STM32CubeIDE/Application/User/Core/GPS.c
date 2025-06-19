@@ -26,6 +26,7 @@ CELL_STATUS_REG CELL;
 char gpsLocationBuff[GPS_SIZE] = "";
 bool gpsError = true;
 bool gpsBoot = true;
+extern bool triggerSource;
 /************************ Public Function Definitions ************************/
 void gpsParametersInit(void)
 {
@@ -637,9 +638,16 @@ char* gpsLocationMessage()
 
 	Time_StampISO(timebuff);
 
-	buffSize = snprintf(gpsBuff, GPS_MSG_SIZE, "\1{\"dev_id\":\"%lu\",\"type\":\"location\",\"timestamp\":\"%s\",\"version\":%d,\"latitude\":%f,\"longitude\":%f,\"altitude\":%f,\"speed\":%f,\"course\":%s,\"nsat\":%d}",
+	if (!triggerSource)
+	{
+	buffSize = snprintf(gpsBuff, GPS_MSG_SIZE, "\1{\"dev_id\":\"%lu\",\"type\":\"location\",\"timestamp\":\"%s\",\"version\":%d,\"trigger\":\"alarm\",\"latitude\":%f,\"longitude\":%f,\"altitude\":%f,\"speed\":%f,\"course\":%s,\"nsat\":%d}",
 			UNIQUE_Device_ID, timebuff, GPS_LOCATION_VERSION, privateGpsData.CurrentPosition.latitude, privateGpsData.CurrentPosition.longitude, privateGpsData.altitude, privateGpsData.spkm, privateGpsData.COG, privateGpsData.nsat);
-
+	}
+	else if (triggerSource)
+	{
+	buffSize = snprintf(gpsBuff, GPS_MSG_SIZE, "\1{\"dev_id\":\"%lu\",\"type\":\"location\",\"timestamp\":\"%s\",\"version\":%d,\"trigger\":\"periodic\",\"latitude\":%f,\"longitude\":%f,\"altitude\":%f,\"speed\":%f,\"course\":%s,\"nsat\":%d}",
+			UNIQUE_Device_ID, timebuff, GPS_LOCATION_VERSION, privateGpsData.CurrentPosition.latitude, privateGpsData.CurrentPosition.longitude, privateGpsData.altitude, privateGpsData.spkm, privateGpsData.COG, privateGpsData.nsat);
+	}
 	if(buffSize > 0 && buffSize < GPS_MSG_SIZE)
 	{
 		return gpsBuff;
