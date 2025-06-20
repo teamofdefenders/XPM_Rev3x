@@ -172,7 +172,7 @@ void Reflash ( MEM_PTR *bigData, BANK_TYPE isBank1 )
 	    status = HAL_FLASH_Program(FLASH_TYPEPROGRAM_QUADWORD, currentFlashAddress,(uint32_t)quadWord);
 	    if ( status != HAL_OK)
 	    {
-	        PRINTF("HAL_FLASH_Program failed at buff = %lu with status %d\r\n", buff);
+	        PRINTF("HAL_FLASH_Program failed at buff = %lu with status %d\r\n", buff, status);
 	        Error_Handler();
 	    }
 	    else
@@ -183,7 +183,7 @@ void Reflash ( MEM_PTR *bigData, BANK_TYPE isBank1 )
 	            if( memcmp( ( void * ) currentFlashAddress, quadWord, Quad_Word_Shift ) != 0 )
 	            {
 	                /* Flash content doesn't match SRAM content */
-	                status = HAL_ERROR;
+	            	PRINTF("memory Verify failed at currentFlashAddress = %lu\r\n", currentFlashAddress);
 	            }
 	    	}
 	    }

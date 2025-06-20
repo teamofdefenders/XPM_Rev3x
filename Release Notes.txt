@@ -386,7 +386,7 @@ XPM_Rev3_V1.0.1 (5/14/2025)
 						- Added diagnostic for failed OTA
 						- Fixed CRC overflow issue
 										
-XPM_Rev3_V1.0.1 (05/27/2025)
+XPM_Rev3_V1.0.2 (05/27/2025)
 Field Trial Improvements
 
 	Drivers files
@@ -402,3 +402,34 @@ Field Trial Improvements
 		            - Removed OTA process start from the selectDownlinkOperation function
 		Skywire.c   - Removed CELL_COMMAND checks in CELL_PIRUPDT and cellMovementStart functions for possible Wrong messages being sent to back office
 					- Fixed defaults in sendDeviceConfig function and updated version
+					
+										
+XPM_Rev3_V1.0.3 
+Commented out buzzer Tone function
+
+	Drivers files
+	    none
+		
+	Core files
+		main.c - Updated firmware version
+		
+	App Source files 
+		Functions.c - commented out buzzerTone function calls
+		Skywire.c   - Updated firmware version
+					
+									
+XPM_Rev3_V1.0.4 
+Added disconnect in functions.c line 536
+				
+	Drivers files
+	    none
+		
+	Core files
+		main.c - Updated firmware version
+		
+	App Source files 
+		Bootloader.c  - Fixed "HAL_FLASH_Program failed at buff" message
+		              - Added printf in memory verify program if memory read doesn't match
+		Functions.c - Added CELL_Set_Command (DISCONNECT);
+		Skywire.c   - Updated firmware version
+						

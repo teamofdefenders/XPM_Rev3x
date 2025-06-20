@@ -533,6 +533,9 @@ void Update_State ( MEM_PTR *Data_Ptr )
 
 			if (!latencyMin)
 			{
+				CELL_Set_Command (DISCONNECT);
+				CELL_COMMAND(Data_Ptr);
+
 				HAL_GPIO_WritePin ( MEM_CS_GPIO_Port , MEM_CS_Pin , GPIO_PIN_SET );    //for simulated battery power operation
 
 				HAL_GPIO_WritePin ( Cell_Enable_GPIO_Port , Cell_Enable_Pin , GPIO_PIN_RESET );    //for simulated battery power operation

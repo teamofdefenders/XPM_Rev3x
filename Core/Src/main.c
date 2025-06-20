@@ -368,7 +368,7 @@ int main(void)
 	/* Clears Memory for Use */
 	PACKAGE_Init(&memory);
 
-	char fwVersion[] = "XPM_Rev3_V1.0.3";
+	char fwVersion[] = "XPM_Rev3_V1.0.4";
 
 	// KCS change this in future to some sort of preprogrammed memory
 	PRINTF("Firmware version is %s\r\n",fwVersion);
