@@ -433,12 +433,15 @@ int main(void)
 	Enable_Modem(&memory);
 	PRINTF("Device configuration sending to server\r\n");
 	sendDeviceConfig(&memory, BOOT);
+	Clear_Memory(&memory);
 	triggerSource = true;
+	HAL_Delay(3000);
 	if(gpsError)
 	{
 		PRINTF("GPS error, sending diagnostic to server\r\n");
 		sendDiagnostic(&memory, "\"gps\":[\"time_sync_failed\",\"unknown_location\"]");
 		//sendDiagnostic(&memory, "\"time_sync_failed\",\"unknown_location\"");
+
 	}
 // KCS Diagnostic message testing
 //	Refresh_Watchdog;

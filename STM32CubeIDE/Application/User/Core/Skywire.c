@@ -290,7 +290,14 @@ void CELL_Init(MEM_PTR *Data_Ptr)
 	Clear_Memory(Data_Ptr);
 	Command = SUBSCRIBEDOWN;
 	CELL_COMMAND(Data_Ptr);
-	cellResponseCheck(Data_Ptr);
+	if (cellResponseCheck(Data_Ptr) != 1)
+	{
+		PRINTF("FAILURE FAILURE FAILURE\r\n");
+	}
+	else
+	{
+		cellInitialized = true;
+	}
 	Clear_Memory(Data_Ptr);
 	if ( retry )
 	{
@@ -4340,7 +4347,7 @@ void sendDiagnostic(MEM_PTR *Data_Ptr, char* message)
 	Time_StampISO(timebuff); //Get time stamp in ISO format
 //{"dev_id":"2228293","type":"diagnostic","timestamp":"2023-08-31T23:02:08.255Z","gps":["time_sync_failed, unknown_location"]}
 
-	char* gpsBool = strstr(message, "gps");
+	char* gpsBool = strstr(message, "gps\":[\"unknown_location");
 
 	if (gpsBool)
 	{

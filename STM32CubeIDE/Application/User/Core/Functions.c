@@ -495,6 +495,19 @@ void Component_Initalizer ( MEM_PTR *Data_Ptr )
 void Update_State ( MEM_PTR *Data_Ptr )
 {
 	PRINTF("Entering Update_State; State is %lu\r\n",_State );
+
+	Clear_Memory(Data_Ptr);
+
+	if (cellInitialized)
+	{
+		getFirmwareDownlink(Data_Ptr, 1);
+		if ( mqttDataAvailable )
+		{
+			universalDownlinkDecoder();
+			selectDownlinkOperation(Data_Ptr, IDLE);
+		}
+	}
+
 	if ( _State & SLEEP_STATE )
 	{
 		PRINTF("Update_State includes SLEEP\r\n");
@@ -513,12 +526,16 @@ void Update_State ( MEM_PTR *Data_Ptr )
 		//HAL_PWR_EnableWakeUpPin ( PIR_SLEEP_WAKE_PIN );
 		//HAL_UART_AbortReceive_IT ( &hlpuart1 );   //Added by Gage
 
+
+
 		if ( _State & CHARGER_DETECT )
 		{
 			PRINTF("Update_State includes SLEEP and CHARGER_DETECT\r\n");
 #ifdef Log_Level_0
 			Log_Single ( LOG_IDLE_START );
 #endif // Log_Level_0
+
+
 
 
 			if (!latencyMin)
@@ -1206,15 +1223,7 @@ void Update_State ( MEM_PTR *Data_Ptr )
 				CELL_PIRUPDT ( Data_Ptr, false );
 			}
 
-			if (bootModem)
-			{
-			getFirmwareDownlink(Data_Ptr, 1);
-			if ( mqttDataAvailable )
-			{
-				universalDownlinkDecoder();
-				selectDownlinkOperation(Data_Ptr, IDLE);
-			}
-			}
+
 
 			if (fwPending)
 			{
