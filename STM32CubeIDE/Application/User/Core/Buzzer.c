@@ -56,6 +56,7 @@ void getBuzzerParameters(BUZZER_PARAMETER_TYPE *extParams)
 void setBuzzerParameters(BUZZER_PARAMETER_TYPE extParams)
 {
 	privateBuzzerParams.mode = extParams.mode;
+	privateBuzzerParams.valueDefault = extParams.valueDefault;
 }
 
 void setBuzzerDefault(bool isTrue)
