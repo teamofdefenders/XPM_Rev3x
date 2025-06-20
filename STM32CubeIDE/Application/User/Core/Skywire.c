@@ -42,6 +42,7 @@ bool oneconfigtest = true;
 bool retry = false;
 char batVal[10];
 
+extern bool triggerSource;
 extern bool cellInitialized;
 extern uint16_t pagesToResend[100];
 int InitCounter = 0;
@@ -4338,8 +4339,28 @@ void sendDiagnostic(MEM_PTR *Data_Ptr, char* message)
 
 	Time_StampISO(timebuff); //Get time stamp in ISO format
 //{"dev_id":"2228293","type":"diagnostic","timestamp":"2023-08-31T23:02:08.255Z","gps":["time_sync_failed, unknown_location"]}
-	buffSize = snprintf(configBuff, MEMORY_MAX, "\1{\"dev_id\":\"%lu\",\"type\":\"diagnostic\",\"timestamp\":\"%s\",%s}",
-			UNIQUE_Device_ID, timebuff, message);
+
+	char* gpsBool = strstr(message, "gps");
+
+	if (gpsBool)
+	{
+		if (!triggerSource)
+		{
+			buffSize = snprintf(configBuff, MEMORY_MAX, "\1{\"dev_id\":\"%lu\",\"type\":\"diagnostic\",\"trigger\":\"alarm\",\"timestamp\":\"%s\",%s}",
+					UNIQUE_Device_ID, timebuff, message);
+		}
+		else if (triggerSource)
+		{
+			buffSize = snprintf(configBuff, MEMORY_MAX, "\1{\"dev_id\":\"%lu\",\"type\":\"diagnostic\",\"trigger\":\"periodic\",\"timestamp\":\"%s\",%s}",
+					UNIQUE_Device_ID, timebuff, message);
+		}
+	}
+	else
+	{
+		buffSize = snprintf(configBuff, MEMORY_MAX, "\1{\"dev_id\":\"%lu\",\"type\":\"diagnostic\",\"timestamp\":\"%s\",%s}",
+				UNIQUE_Device_ID, timebuff, message);
+	}
+
 
 	if(buffSize > 0 && buffSize < MEMORY_MAX && configBuff[0] != '\0')
 	{

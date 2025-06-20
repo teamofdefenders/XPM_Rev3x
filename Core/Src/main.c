@@ -73,6 +73,7 @@ bool latencyMin = false;
 bool cameraPower = false;
 extern bool gpsError;
 extern bool accelTrigger;
+extern bool triggerSource;
 
 /* USER CODE END PV */
 
@@ -432,6 +433,7 @@ int main(void)
 	Enable_Modem(&memory);
 	PRINTF("Device configuration sending to server\r\n");
 	sendDeviceConfig(&memory, BOOT);
+	triggerSource = true;
 	if(gpsError)
 	{
 		PRINTF("GPS error, sending diagnostic to server\r\n");
